@@ -1,0 +1,6 @@
+{
+  "name": "Prism - Visual Discovery",
+  "description": "A bespoke visual discovery platform exploring AI & Tools, Tech, Movies & TV, and Manhwa & Anime.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
