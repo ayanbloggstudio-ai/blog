@@ -476,7 +476,7 @@ export const NovelCatalogView: React.FC = () => {
                         setSelectedGenre('All Genres');
                         setSearchQuery('');
                       }
-                    : () => setActiveTab('studio')
+                    : () => setActiveTab('upload')
                 }
               />
             ) : (

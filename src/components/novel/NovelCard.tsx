@@ -187,15 +187,15 @@ export const NovelCard: React.FC<NovelCardProps> = ({ novel, featured = false })
         <div className="pt-4 mt-4 border-t border-zinc-800/60 flex items-center justify-between gap-2">
           {/* Stats: Chapters, Views, Likes */}
           <div className="flex items-center gap-3 text-xs text-zinc-400">
-            <span className="flex items-center gap-1" title={`${novel.chapters.length} chapters`}>
+            <span className="flex items-center gap-1" title={`${(novel.chapters?.length || 0)} chapters`}>
               <BookOpen className="w-3.5 h-3.5 text-zinc-500" />
-              <span className="font-semibold text-zinc-300">{novel.chapters.length}</span>
+              <span className="font-semibold text-zinc-300">{novel.chapters?.length || 0}</span>
               <span className="hidden sm:inline text-zinc-500">chs</span>
             </span>
 
-            <span className="flex items-center gap-1" title={`${novel.views.toLocaleString()} reads`}>
+            <span className="flex items-center gap-1" title={`${(novel.views || 0).toLocaleString()} reads`}>
               <Eye className="w-3.5 h-3.5 text-zinc-500" />
-              <span>{(novel.views > 1000 ? `${(novel.views / 1000).toFixed(1)}k` : novel.views)}</span>
+              <span>{((novel.views || 0) > 1000 ? `${((novel.views || 0) / 1000).toFixed(1)}k` : (novel.views || 0))}</span>
             </span>
 
             <button

@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, Info, RotateCcw, X } from 'lucide-react';
+import { CheckCircle2, Info, RotateCcw, X, AlertCircle } from 'lucide-react';
 import { useDiscovery } from '../context/DiscoveryContext';
 
 export const ToastContainer: React.FC = () => {
@@ -19,6 +19,8 @@ export const ToastContainer: React.FC = () => {
               <span className="p-1 rounded-md bg-zinc-800 text-zinc-300">
                 <RotateCcw className="w-4 h-4" />
               </span>
+            ) : toast.type === 'error' ? (
+              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
             ) : toast.type === 'info' ? (
               <Info className="w-4 h-4 text-cyan-400 shrink-0" />
             ) : (

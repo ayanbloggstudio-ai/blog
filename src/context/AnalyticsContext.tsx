@@ -22,11 +22,6 @@ import { useCommunity } from './CommunityContext';
 const ANALYTICS_STORAGE_KEY = 'prism_analytics_events_v1';
 const VISITOR_STORAGE_KEY = 'prism_visitor_session_v1';
 
-// Seed Initial Events to provide realistic analytics dashboard data
-const INITIAL_PAGE_VIEWS_COUNT = 8420;
-const INITIAL_RETURNING_VISITORS = 3180;
-const INITIAL_UNIQUE_VISITORS = 5240;
-
 interface AnalyticsContextType {
   // Event tracking actions
   trackPageView: (viewName: string, path?: string) => void;
@@ -361,9 +356,13 @@ export const AnalyticsProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const recordedAffClicks = externalClicks.filter((e) => e.isAffiliate).length;
     const recordedAffRev = externalClicks.reduce((sum, e) => sum + (e.estimatedRevenue || 0), 0);
 
+    const visitorVisitCounts = new Map<string, number>();
+    pageViews.forEach((p) => {
+      visitorVisitCounts.set(p.visitorId, (visitorVisitCounts.get(p.visitorId) || 0) + 1);
+    });
     const uniqueVisitorsSet = new Set(pageViews.map((p) => p.visitorId));
     const totalVisitors = uniqueVisitorsSet.size;
-    const returningVisitors = pageViews.filter((p) => p.isReturning).length;
+    const returningVisitors = Array.from(visitorVisitCounts.values()).filter((count) => count > 1).length;
     const returningRate = totalVisitors > 0 ? Math.round((returningVisitors / totalVisitors) * 100) : 0;
 
     return {
@@ -398,15 +397,15 @@ export const AnalyticsProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         title: item.title,
         category: item.category,
         contentType: item.contentType || 'article',
-        opens: item.viewCount || 0,
-        saves: item.saveCount || 0,
-        likes: item.likes || 0,
-        shares: item.shareCount || 0,
+        opens: 0,
+        saves: 0,
+        likes: 0,
+        shares: 0,
         externalClicks: 0,
         affiliateClicks: 0,
         estimatedRevenue: 0,
-        communityRatingAvg: item.communityRating || 0,
-        ratingCount: item.communityReviewCount || 0
+        communityRatingAvg: 0,
+        ratingCount: 0
       });
     });
 
@@ -547,7 +546,7 @@ export const AnalyticsProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         status: t.status,
         velocityPercent: t.velocityPercent,
         relatedArticlesPublished: relatedItems.length,
-        totalImpressions: t.impressionsCount || 0,
+        totalImpressions: (t.velocityPercent || 0) * 10,
         totalClicks: t.discussionCount || 0,
         monetizationEfficiency: t.commercialRelevanceScore > 80 ? 'High ($$$)' : 'Medium ($$)'
       };

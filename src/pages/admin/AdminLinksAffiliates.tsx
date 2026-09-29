@@ -54,7 +54,7 @@ export const AdminLinksAffiliates: React.FC = () => {
       affiliateUrl: p.affiliateUrl || '',
       ctaText: p.affiliateCtaText || 'Try Now',
       disclosure: p.affiliateDisclosure || 'PRISM receives referral compensation on verified partner clicks.',
-      views: p.viewsCount || 25,
+      views: p.viewsCount || 0,
       clicks: p.referralClicks || 0,
       ctr: (p.viewsCount || 0) > 0 ? (((p.referralClicks || 0) / (p.viewsCount || 1)) * 100).toFixed(1) : '0.0'
     })),
@@ -67,9 +67,9 @@ export const AdminLinksAffiliates: React.FC = () => {
       affiliateUrl: it.affiliateUrl || '',
       ctaText: 'Visit Partner',
       disclosure: it.affiliateDisclosure || 'PRISM is reader-supported with outbound links.',
-      views: it.heatScore ? it.heatScore * 4 : 40,
-      clicks: it.affiliateUrl ? Math.round((it.heatScore || 10) * 0.15) : 0,
-      ctr: it.affiliateUrl ? '3.8' : '0.0'
+      views: 0,
+      clicks: 0,
+      ctr: '0.0'
     }))
   ];
 

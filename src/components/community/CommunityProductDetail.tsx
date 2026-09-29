@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ArrowLeft,
   ThumbsUp,
@@ -13,12 +13,14 @@ import {
   AlertTriangle,
   EyeOff,
   Trash2,
+  Edit3,
   Sparkles,
   Info,
   Clock,
   Flag,
   Send,
-  Check
+  Check,
+  X
 } from 'lucide-react';
 import { CommunityProduct, ReportReason } from '../../types/community';
 import { useCommunity } from '../../context/CommunityContext';
@@ -40,11 +42,15 @@ export const CommunityProductDetail: React.FC<CommunityProductDetailProps> = ({
     toggleSaveProduct,
     getProductComments,
     addComment,
+    updateComment,
     reportComment,
     hideComment,
     deleteComment,
     markCommentHelpful,
     getRelatedProducts,
+    recordProductClick,
+    recordProductView,
+    recordProductShare,
     isRateLimited,
     rateLimitRemainingSeconds
   } = useCommunity();
@@ -55,6 +61,20 @@ export const CommunityProductDetail: React.FC<CommunityProductDetailProps> = ({
   const comments = getProductComments(product.id);
   const relatedProducts = getRelatedProducts(product, 3);
 
+  // Record view on mount & dynamic SEO
+  useEffect(() => {
+    recordProductView(product.id);
+    document.title = `${product.name} | PRISM Community`;
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+      metaDesc.setAttribute('content', product.shortDescription || product.description || 'Explore curated products on PRISM');
+    }
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) {
+      ogTitle.setAttribute('content', `${product.name} | PRISM Community`);
+    }
+  }, [product.id, product.name, product.shortDescription, product.description, recordProductView]);
+
   // New Comment / Review Form State
   const [authorName, setAuthorName] = useState('');
   const [rating, setRating] = useState<number>(5);
@@ -64,6 +84,13 @@ export const CommunityProductDetail: React.FC<CommunityProductDetailProps> = ({
   const [honeypot, setHoneypot] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+
+  // Edit Comment State
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editContent, setEditContent] = useState('');
+  const [editRating, setEditRating] = useState<number | undefined>(undefined);
+  const [isUpdatingComment, setIsUpdatingComment] = useState(false);
 
   // Report Modal / Confirmation State
   const [reportingCommentId, setReportingCommentId] = useState<string | null>(null);
@@ -283,6 +310,7 @@ export const CommunityProductDetail: React.FC<CommunityProductDetailProps> = ({
                 href={product.affiliateUrl || product.officialWebsiteUrl}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => recordProductClick(product.id, Boolean(product.affiliateUrl), product.affiliateUrl || product.officialWebsiteUrl)}
                 className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-sm transition-all shadow-lg shadow-emerald-500/20 active:scale-[0.98]"
               >
                 <span>{product.affiliateCtaText || 'Visit Official Website'}</span>
@@ -295,6 +323,7 @@ export const CommunityProductDetail: React.FC<CommunityProductDetailProps> = ({
                   href={product.officialWebsiteUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => recordProductClick(product.id, false, product.officialWebsiteUrl)}
                   className="flex items-center justify-center gap-1.5 px-4 py-3 rounded-2xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white font-semibold text-xs border border-zinc-700/80 transition-colors"
                 >
                   <span>Official Site</span>
@@ -574,17 +603,62 @@ export const CommunityProductDetail: React.FC<CommunityProductDetailProps> = ({
                   </div>
                 </div>
 
-                {/* Content */}
-                <div className="space-y-1">
-                  {comment.title && (
-                    <h4 className="text-xs font-bold text-zinc-200">{comment.title}</h4>
-                  )}
-                  <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed whitespace-pre-line">
-                    {comment.content}
-                  </p>
-                </div>
+                {/* Content or Edit Mode */}
+                {editingCommentId === comment.id ? (
+                  <div className="space-y-2 pt-1 pb-2">
+                    <input
+                      type="text"
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      placeholder="Comment title (optional)"
+                      className="w-full px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-700 text-xs text-white focus:outline-none focus:border-emerald-500"
+                    />
+                    <textarea
+                      value={editContent}
+                      onChange={(e) => setEditContent(e.target.value)}
+                      rows={3}
+                      className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-xs text-zinc-200 focus:outline-none focus:border-emerald-500"
+                    />
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setEditingCommentId(null)}
+                        className="px-3 py-1 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white bg-zinc-800"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isUpdatingComment || !editContent.trim()}
+                        onClick={async () => {
+                          setIsUpdatingComment(true);
+                          await updateComment(comment.id, {
+                            title: editTitle.trim() || undefined,
+                            content: editContent.trim(),
+                            rating: editRating
+                          });
+                          setIsUpdatingComment(false);
+                          setEditingCommentId(null);
+                          showToast('Comment updated successfully!', 'success');
+                        }}
+                        className="px-3 py-1 rounded-lg text-xs font-bold text-zinc-950 bg-emerald-500 hover:bg-emerald-400"
+                      >
+                        Save Changes
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    {comment.title && (
+                      <h4 className="text-xs font-bold text-zinc-200">{comment.title}</h4>
+                    )}
+                    <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed whitespace-pre-line">
+                      {comment.content}
+                    </p>
+                  </div>
+                )}
 
-                {/* Comment Actions (Helpful, Report, Hide, Delete) */}
+                {/* Comment Actions (Helpful, Edit, Report, Hide, Delete) */}
                 <div className="pt-2 flex items-center justify-between text-xs text-zinc-500 border-t border-zinc-850">
                   <button
                     onClick={() => markCommentHelpful(comment.id)}
@@ -598,7 +672,21 @@ export const CommunityProductDetail: React.FC<CommunityProductDetailProps> = ({
                     <span>Helpful ({comment.helpfulCount})</span>
                   </button>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
+                    {/* Edit comment */}
+                    <button
+                      onClick={() => {
+                        setEditingCommentId(comment.id);
+                        setEditTitle(comment.title || '');
+                        setEditContent(comment.content || '');
+                        setEditRating(comment.rating);
+                      }}
+                      className="p-1.5 text-zinc-500 hover:text-emerald-400 transition-colors"
+                      title="Edit your comment"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                    </button>
+
                     {/* Hide for current user */}
                     <button
                       onClick={() => {

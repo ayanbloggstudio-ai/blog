@@ -13,6 +13,7 @@ import {
   NovelSubmissionStatus
 } from '../types/novel';
 import { calculateNovelTrendingScore } from '../utils/novelRanking';
+import { apiClient } from '../services/apiClient';
 
 interface NovelContextType {
   // Catalog
@@ -221,6 +222,20 @@ export const NovelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
   });
 
+  // Sync initial novels from real backend database
+  useEffect(() => {
+    let isMounted = true;
+    apiClient.fetchNovels({ admin: true }).then(res => {
+      if (isMounted && res && Array.isArray(res.novels)) {
+        setNovels(res.novels.filter(n => n.submissionStatus === 'approved' || (n as any).status === 'published' || (n as any).status === 'approved'));
+        setAllSubmissions(res.novels);
+      }
+    }).catch(err => {
+      console.warn('Backend novels fetch error:', err);
+    });
+    return () => { isMounted = false; };
+  }, []);
+
   // Persist items on changes
   useEffect(() => {
     localStorage.setItem(`${LOCAL_STORAGE_PREFIX}catalog`, JSON.stringify(novels));
@@ -258,7 +273,7 @@ export const NovelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     if (selectedNovelId && selectedChapterNumber) {
       const novel = novels.find(n => n.id === selectedNovelId);
-      const chapter = novel?.chapters.find(c => c.chapterNumber === selectedChapterNumber);
+      const chapter = novel?.chapters?.find(c => c.chapterNumber === selectedChapterNumber);
       if (novel && chapter) {
         document.title = `${chapter.title} - ${novel.title} | PRISM Web Novels`;
         window.history.replaceState(null, '', `#novel/${novel.slug}/chapter/${selectedChapterNumber}`);
@@ -315,7 +330,7 @@ export const NovelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Reading progress update
   const updateReadingProgress = useCallback((novelId: string, chapterNumber: number, scrollPercent: number) => {
     const novel = getNovel(novelId);
-    const chapter = novel?.chapters.find(c => c.chapterNumber === chapterNumber);
+    const chapter = novel?.chapters?.find(c => c.chapterNumber === chapterNumber);
     if (!novel || !chapter) return;
 
     setReadingProgress(prev => ({
@@ -326,16 +341,18 @@ export const NovelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         chapterId: chapter.id,
         scrollPercent: Math.min(100, Math.max(0, Math.round(scrollPercent))),
         lastReadAt: new Date().toISOString(),
-        totalChapters: novel.chapters.length
+        totalChapters: novel.chapters?.length || 0
       }
     }));
+
+    apiClient.updateNovelReadingProgress(novelId, chapterNumber, scrollPercent).catch(() => {});
   }, [getNovel]);
 
   const getReadingProgress = useCallback((novelId: string): ReadingProgress | undefined => {
     return readingProgress[novelId];
   }, [readingProgress]);
 
-  // Saves
+  // Saves / Bookmarks
   const toggleSaveNovel = useCallback((novelId: string) => {
     setSavedNovelIds(prev => {
       const exists = prev.includes(novelId);
@@ -349,6 +366,12 @@ export const NovelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }));
       return next;
     });
+
+    apiClient.toggleNovelBookmark(novelId).then(res => {
+      if (res && typeof res.totalBookmarks === 'number') {
+        setNovels(all => all.map(n => n.id === novelId ? { ...n, saves: res.totalBookmarks } : n));
+      }
+    }).catch(() => {});
   }, []);
 
   const isNovelSaved = useCallback((novelId: string) => {
@@ -387,6 +410,12 @@ export const NovelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }));
       return next;
     });
+
+    apiClient.toggleNovelLike(novelId).then(res => {
+      if (res && typeof res.totalLikes === 'number') {
+        setNovels(all => all.map(n => n.id === novelId ? { ...n, likes: res.totalLikes } : n));
+      }
+    }).catch(() => {});
   }, []);
 
   const isNovelLiked = useCallback((novelId: string) => {
@@ -523,6 +552,15 @@ export const NovelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
 
     setAllSubmissions(prev => [newSubmission, ...prev]);
+
+    apiClient.submitUserNovel(data, asDraft).then(res => {
+      if (res && res.submission) {
+        setAllSubmissions(prev => [res.submission, ...prev.filter(s => s.id !== newSubmission.id && s.id !== res.submission.id)]);
+      }
+    }).catch(err => {
+      console.warn('Backend submission error:', err);
+    });
+
     return newSubmission;
   }, []);
 
@@ -550,6 +588,8 @@ export const NovelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return [approvedItem!, ...prev];
       });
     }
+
+    apiClient.reviewSubmission(submissionId, 'approve').catch(e => console.warn('Approve submission error:', e));
   }, []);
 
   const adminRejectSubmission = useCallback((submissionId: string, reason: string) => {
@@ -566,6 +606,7 @@ export const NovelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     // Remove from public catalog if it was there
     setNovels(prev => prev.filter(n => n.id !== submissionId));
+    apiClient.reviewSubmission(submissionId, 'reject', reason).catch(e => console.warn('Reject submission error:', e));
   }, []);
 
   const adminSuspendSubmission = useCallback((submissionId: string) => {
@@ -576,11 +617,13 @@ export const NovelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return sub;
     }));
     setNovels(prev => prev.filter(n => n.id !== submissionId));
+    apiClient.reviewSubmission(submissionId, 'suspend').catch(e => console.warn('Suspend submission error:', e));
   }, []);
 
   const adminDeleteSubmission = useCallback((submissionId: string) => {
     setAllSubmissions(prev => prev.filter(sub => sub.id !== submissionId));
     setNovels(prev => prev.filter(n => n.id !== submissionId));
+    apiClient.deleteNovel(submissionId).catch(e => console.warn('Delete submission error:', e));
   }, []);
 
   const adminRequestChangesSubmission = useCallback((submissionId: string, notes: string) => {
@@ -594,6 +637,7 @@ export const NovelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
       return sub;
     }));
+    apiClient.reviewSubmission(submissionId, 'request_changes', notes).catch(e => console.warn('Request changes error:', e));
   }, []);
 
   // Admin Catalog Management: PRISM Originals, Web Novels, Manga, Manhwa
@@ -617,63 +661,76 @@ export const NovelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       tags: novelData.tags && novelData.tags.length > 0 ? novelData.tags : ['Original', 'Web Novel'],
       status: novelData.status || 'ongoing',
       submissionStatus: 'approved',
-      chapters: novelData.chapters && novelData.chapters.length > 0 ? novelData.chapters : [
-        {
-          id: `chap-${Date.now()}-1`,
-          chapterNumber: 1,
-          title: 'Chapter 1: The First Step',
-          publishedAt: new Date().toISOString().split('T')[0],
-          content: 'The journey begins across the threshold of infinity...',
-          wordCount: 1200,
-          views: 50,
-          likes: 12,
-          commentsCount: 2
-        }
-      ],
-      views: novelData.views || 50,
-      likes: novelData.likes || 12,
-      saves: novelData.saves || 8,
-      followers: novelData.followers || 10,
-      rating: novelData.rating || 4.8,
-      ratingCount: novelData.ratingCount || 1,
+      chapters: novelData.chapters && novelData.chapters.length > 0 ? novelData.chapters : [],
+      views: novelData.views || 0,
+      likes: novelData.likes || 0,
+      saves: novelData.saves || 0,
+      followers: novelData.followers || 0,
+      rating: novelData.rating || 5.0,
+      ratingCount: novelData.ratingCount || 0,
       lastUpdatedAt: new Date().toISOString().split('T')[0],
       featured: Boolean(novelData.featured),
-      trendingScore: novelData.trendingScore || 70,
-      weeklyReads: novelData.weeklyReads || 40,
-      completionRate: novelData.completionRate || 80,
-      commentsCount: novelData.commentsCount || 2
+      trendingScore: novelData.trendingScore || 50,
+      weeklyReads: novelData.weeklyReads || 0,
+      completionRate: novelData.completionRate || 0,
+      commentsCount: novelData.commentsCount || 0
     };
 
     setNovels(prev => [newNovel, ...prev]);
+    setAllSubmissions(prev => [newNovel, ...prev]);
+
+    apiClient.createNovel(novelData).then(res => {
+      if (res && res.novel) {
+        setNovels(prev => [res.novel, ...prev.filter(n => n.id !== newId && n.id !== res.novel.id)]);
+        setAllSubmissions(prev => [res.novel, ...prev.filter(n => n.id !== newId && n.id !== res.novel.id)]);
+      }
+    }).catch(err => {
+      console.warn('Backend novel create error:', err);
+    });
+
     return newNovel;
   }, []);
 
   const adminUpdateNovel = useCallback((novelId: string, updates: Partial<NovelItem>) => {
     setNovels(prev => prev.map(n => n.id === novelId ? { ...n, ...updates, lastUpdatedAt: new Date().toISOString().split('T')[0] } : n));
     setAllSubmissions(prev => prev.map(s => s.id === novelId ? { ...s, ...updates } : s));
+    apiClient.updateNovel(novelId, updates).catch(e => console.warn('Novel update error:', e));
   }, []);
 
   const adminDeleteNovel = useCallback((novelId: string) => {
     setNovels(prev => prev.filter(n => n.id !== novelId));
     setAllSubmissions(prev => prev.filter(s => s.id !== novelId));
+    apiClient.deleteNovel(novelId).catch(e => console.warn('Novel delete error:', e));
   }, []);
 
   const adminToggleFeatureNovel = useCallback((novelId: string) => {
-    setNovels(prev => prev.map(n => n.id === novelId ? { ...n, featured: !n.featured } : n));
+    setNovels(prev => {
+      const target = prev.find(n => n.id === novelId);
+      const nextFeat = !target?.featured;
+      apiClient.updateNovel(novelId, { featured: nextFeat }).catch(() => {});
+      return prev.map(n => n.id === novelId ? { ...n, featured: nextFeat } : n);
+    });
   }, []);
 
   const adminToggleTrendingNovel = useCallback((novelId: string) => {
-    setNovels(prev => prev.map(n => n.id === novelId ? { ...n, trendingScore: (n.trendingScore || 50) > 80 ? 40 : 95 } : n));
+    setNovels(prev => {
+      const target = prev.find(n => n.id === novelId);
+      const nextTrending = (target?.trendingScore || 50) > 80 ? 40 : 95;
+      apiClient.updateNovel(novelId, { trendingScore: nextTrending }).catch(() => {});
+      return prev.map(n => n.id === novelId ? { ...n, trendingScore: nextTrending } : n);
+    });
   }, []);
 
   const adminTogglePublishNovel = useCallback((novelId: string) => {
     setNovels(prev => {
       const exists = prev.some(n => n.id === novelId);
       if (exists) {
+        apiClient.updateNovel(novelId, { status: 'hiatus' }).catch(() => {});
         return prev.filter(n => n.id !== novelId);
       } else {
         const sub = allSubmissions.find(s => s.id === novelId);
         if (sub) {
+          apiClient.reviewSubmission(novelId, 'approve').catch(() => {});
           return [{ ...sub, submissionStatus: 'approved' as const }, ...prev];
         }
         return prev;
@@ -707,6 +764,24 @@ export const NovelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return n;
     }));
 
+    apiClient.addNovelChapter(novelId, {
+      chapterNumber: chapter.chapterNumber,
+      title: chapter.title,
+      content: chapter.content,
+      publishDate: chapter.publishedAt
+    }).then(res => {
+      if (res && res.chapter) {
+        setNovels(prev => prev.map(n => {
+          if (n.id !== novelId) return n;
+          const filtered = (n.chapters || []).filter(c => c.id !== newChapterId && c.id !== res.chapter.id);
+          return {
+            ...n,
+            chapters: [...filtered, res.chapter].sort((a, b) => a.chapterNumber - b.chapterNumber)
+          };
+        }));
+      }
+    }).catch(e => console.warn('Chapter add error:', e));
+
     return newChapter;
   }, []);
 
@@ -718,6 +793,7 @@ export const NovelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
       return n;
     }));
+    apiClient.updateNovelChapter(novelId, chapterId, updates).catch(e => console.warn('Chapter update error:', e));
   }, []);
 
   const adminDeleteChapter = useCallback((novelId: string, chapterId: string) => {
@@ -728,6 +804,7 @@ export const NovelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
       return n;
     }));
+    apiClient.deleteNovelChapter(novelId, chapterId).catch(e => console.warn('Chapter delete error:', e));
   }, []);
 
   const adminReorderChapters = useCallback((novelId: string, orderedChapterIds: string[]) => {
@@ -755,6 +832,7 @@ export const NovelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
       return n;
     }));
+    apiClient.reorderNovelChapters(novelId, orderedChapterIds).catch(e => console.warn('Reorder chapters error:', e));
   }, []);
 
   const adminDeleteComment = useCallback((novelId: string, commentId: string) => {

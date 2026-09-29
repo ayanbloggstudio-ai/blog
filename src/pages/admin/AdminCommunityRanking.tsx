@@ -23,6 +23,8 @@ import { useCommunity } from '../../context/CommunityContext';
 import { useDiscovery } from '../../context/DiscoveryContext';
 import { CommunityProduct } from '../../types/community';
 import { calculateProductStats } from '../../utils/communityRanking';
+import { EmptyState } from '../../components/EmptyState';
+import { SafeImage } from '../../components/SafeImage';
 
 export const AdminCommunityRanking: React.FC = () => {
   const {
@@ -223,40 +225,62 @@ export const AdminCommunityRanking: React.FC = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-800/60">
-            {sortedAndFiltered.map((item, index) => {
-              const { product, trendingScore, likes, saves, commentCount, shares, clicks } = item;
-              const isTrendingPublic = item.isTrendingManual || item.isTrendingCalculated || trendingScore >= 70;
+            {sortedAndFiltered.length === 0 ? (
+              <tr>
+                <td colSpan={10} className="py-12 px-4 text-center">
+                  <EmptyState
+                    icon={TrendingUp}
+                    title="No products match ranking filters"
+                    description="Try changing the category filter, search query, or sorting criteria."
+                    actionLabel={searchQuery || mainFilter !== 'all' ? 'Reset Filters' : undefined}
+                    onAction={
+                      searchQuery || mainFilter !== 'all'
+                        ? () => {
+                            setSearchQuery('');
+                            setMainFilter('all');
+                          }
+                        : undefined
+                    }
+                  />
+                </td>
+              </tr>
+            ) : (
+              sortedAndFiltered.map((item, index) => {
+                const { product, trendingScore, likes, saves, commentCount, shares, clicks } = item;
+                const isTrendingPublic = item.isTrendingManual || item.isTrendingCalculated || trendingScore >= 70;
 
-              return (
-                <tr
-                  key={product.id}
-                  className="hover:bg-zinc-900/50 transition-colors group"
-                >
-                  {/* Rank number */}
-                  <td className="py-3.5 px-4 font-mono font-extrabold text-sm">
-                    <span
-                      className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-                        index === 0
-                          ? 'bg-amber-400 text-zinc-950 shadow-md shadow-amber-400/20'
-                          : index === 1
-                          ? 'bg-zinc-200 text-zinc-950 shadow-sm'
-                          : index === 2
-                          ? 'bg-amber-700 text-white shadow-sm'
-                          : 'bg-zinc-900 text-zinc-400'
-                      }`}
-                    >
-                      #{index + 1}
-                    </span>
-                  </td>
+                return (
+                  <tr
+                    key={product.id}
+                    className="hover:bg-zinc-900/50 transition-colors group"
+                  >
+                    {/* Rank number */}
+                    <td className="py-3.5 px-4 font-mono font-extrabold text-sm">
+                      <span
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+                          index === 0
+                            ? 'bg-amber-400 text-zinc-950 shadow-md shadow-amber-400/20'
+                            : index === 1
+                            ? 'bg-zinc-200 text-zinc-950 shadow-sm'
+                            : index === 2
+                            ? 'bg-amber-700 text-white shadow-sm'
+                            : 'bg-zinc-900 text-zinc-400'
+                        }`}
+                      >
+                        #{index + 1}
+                      </span>
+                    </td>
 
-                  {/* Product Details */}
-                  <td className="py-3.5 px-4 min-w-[220px]">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-10 h-10 rounded-lg object-cover bg-zinc-900 border border-zinc-800 shrink-0"
-                      />
+                    {/* Product Details */}
+                    <td className="py-3.5 px-4 min-w-[220px]">
+                      <div className="flex items-center gap-3">
+                        <SafeImage
+                          src={product.image}
+                          alt={product.name}
+                          fallbackType="product"
+                          fallbackTitle={product.name}
+                          className="w-10 h-10 rounded-lg object-cover bg-zinc-900 border border-zinc-800 shrink-0"
+                        />
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <h4 className="font-bold text-white text-xs truncate">{product.name}</h4>
@@ -415,7 +439,8 @@ export const AdminCommunityRanking: React.FC = () => {
                   </td>
                 </tr>
               );
-            })}
+            })
+          )}
           </tbody>
         </table>
       </div>

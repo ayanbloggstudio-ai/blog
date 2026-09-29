@@ -68,8 +68,8 @@ export const AdminDashboard: React.FC = () => {
   const pendingSubmissionsCount = allSubmissions.filter((s) => s.submissionStatus === 'pending_review').length;
   // 7. Reported content
   const reportedContentCount = reports.filter((r) => r.status === 'pending' || r.status === 'reported').length + reviews.filter((r) => r.status === 'flagged').length;
-  // 8. Affiliate clicks
-  const affiliateClicksCount = products.reduce((sum, p) => sum + (p.referralClicks || 0), 0) + items.filter((i) => Boolean(i.affiliateUrl)).length * 15;
+  // 8. Affiliate clicks (Real database tracking only)
+  const affiliateClicksCount = products.reduce((sum, p) => sum + (p.referralClicks || 0), 0);
   // 9. Novel reads
   const novelReadsCount = novels.reduce((sum, n) => sum + (n.views || 0), 0);
   // 10. Community engagement
@@ -341,13 +341,13 @@ export const AdminDashboard: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-white truncate">{trend.topic}</span>
                     <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800/60 font-mono font-bold">
-                      +{trend.velocityMultiplier}x
+                      +{trend.velocityPercent || 100}%
                     </span>
                   </div>
-                  <span className="text-[11px] text-zinc-400 line-clamp-1">{trend.shortSummary}</span>
+                  <span className="text-[11px] text-zinc-400 line-clamp-1">{trend.contentOpportunity}</span>
                 </div>
                 <button
-                  onClick={() => sendTrendToAIStudio(trend.id)}
+                  onClick={() => sendTrendToAIStudio(trend)}
                   className="px-2.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-xs shrink-0 flex items-center gap-1 transition-all"
                 >
                   <Sparkles className="w-3 h-3 fill-current" />

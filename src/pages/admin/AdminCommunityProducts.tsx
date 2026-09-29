@@ -373,7 +373,7 @@ export const AdminCommunityProducts: React.FC = () => {
             title={products.length === 0 ? "No community products available yet" : "No products match current filters"}
             description={products.length === 0 ? "Click '+ Add Product' above to create your first digital tool or hardware entry." : "Try clearing filters or changing search keywords."}
             actionLabel={products.length === 0 ? "+ Add Product" : "Reset Filters"}
-            onAction={products.length === 0 ? () => openCreateModal('digital') : () => {
+            onAction={products.length === 0 ? () => openCreateModal() : () => {
               setMainFilter('all');
               setSubCategoryFilter('all');
               setStatusFilter('all');

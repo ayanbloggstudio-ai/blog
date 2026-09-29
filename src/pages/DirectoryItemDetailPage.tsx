@@ -128,13 +128,12 @@ export const DirectoryItemDetailPage: React.FC = () => {
             href={item.officialWebsite}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={() => trackExternalClick({
-              contentId: item.id,
-              contentTitle: item.title,
-              category: item.categoryName,
-              destinationUrl: item.officialWebsite,
-              isAffiliate: false
-            })}
+            onClick={() => trackExternalClick(
+              { id: item.id, title: item.title, category: item.categoryName },
+              item.officialWebsite,
+              'Visit Website',
+              false
+            )}
             className="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-xs flex items-center gap-1.5 transition-all shadow-md"
           >
             <span>Visit Website</span>
@@ -335,13 +334,12 @@ export const DirectoryItemDetailPage: React.FC = () => {
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() => trackExternalClick({
-                contentId: item.id,
-                contentTitle: item.title,
-                category: item.categoryName,
-                destinationUrl: link.url,
-                isAffiliate: (link.label || '').toLowerCase().includes('affiliate') || (link.label || '').toLowerCase().includes('pricing') || (link.label || '').toLowerCase().includes('get ') || idx === 1
-              })}
+              onClick={() => trackExternalClick(
+                { id: item.id, title: item.title, category: item.categoryName },
+                link.url,
+                link.label,
+                (link.label || '').toLowerCase().includes('affiliate') || (link.label || '').toLowerCase().includes('pricing') || (link.label || '').toLowerCase().includes('get ') || idx === 1
+              )}
               className="p-3 rounded-2xl bg-zinc-950/80 hover:bg-zinc-850 border border-zinc-800 hover:border-emerald-500/50 flex items-center justify-between gap-2 text-xs font-semibold text-zinc-200 hover:text-white transition-all group"
             >
               <span className="truncate">{link.label}</span>

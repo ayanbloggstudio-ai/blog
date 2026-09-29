@@ -29,6 +29,8 @@ import { useCommunity } from '../../context/CommunityContext';
 import { useNovels } from '../../context/NovelContext';
 import { useDiscovery } from '../../context/DiscoveryContext';
 import { CommunityReportItem, CommunityUser, CommunityUserStatus } from '../../types/community';
+import { EmptyState } from '../../components/EmptyState';
+import { SafeImage } from '../../components/SafeImage';
 
 export const AdminModeration: React.FC<{
   initialTab?: 'reports' | 'comments' | 'novel_subs' | 'product_subs' | 'users';
@@ -321,11 +323,20 @@ export const AdminModeration: React.FC<{
       {activeTab === 'reports' && (
         <div className="space-y-3">
           {filteredReports.length === 0 ? (
-            <div className="py-16 text-center bg-[#0b0e15] rounded-2xl border border-zinc-800 p-6 space-y-2">
-              <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto" />
-              <h3 className="text-sm font-bold text-white">No reports match the current filter</h3>
-              <p className="text-xs text-zinc-400">All community reports have been processed or none match criteria.</p>
-            </div>
+            <EmptyState
+              icon={ShieldCheck}
+              title="All caught up on reports"
+              description="No user-reported content matches your current filter criteria."
+              actionLabel={searchQuery || statusFilter !== 'all' ? 'Reset Filters' : undefined}
+              onAction={
+                searchQuery || statusFilter !== 'all'
+                  ? () => {
+                      setSearchQuery('');
+                      setStatusFilter('all');
+                    }
+                  : undefined
+              }
+            />
           ) : (
             filteredReports.map((report) => (
               <div
@@ -451,9 +462,13 @@ export const AdminModeration: React.FC<{
       {activeTab === 'comments' && (
         <div className="space-y-3">
           {filteredComments.length === 0 ? (
-            <div className="py-16 text-center bg-[#0b0e15] rounded-2xl border border-zinc-800 p-6 space-y-2">
-              <p className="text-xs text-zinc-400">No comments or reviews match current criteria.</p>
-            </div>
+            <EmptyState
+              icon={MessageSquare}
+              title="No comments found"
+              description="No community discussions or reviews match the active search or moderation filters."
+              actionLabel={searchQuery ? 'Clear Search' : undefined}
+              onAction={searchQuery ? () => setSearchQuery('') : undefined}
+            />
           ) : (
             filteredComments.map((rev) => (
               <div
@@ -550,9 +565,13 @@ export const AdminModeration: React.FC<{
       {activeTab === 'novel_subs' && (
         <div className="space-y-3">
           {filteredNovelSubmissions.length === 0 ? (
-            <div className="py-16 text-center bg-[#0b0e15] rounded-2xl border border-zinc-800 p-6 space-y-2">
-              <p className="text-xs text-zinc-400">No novel submissions in queue.</p>
-            </div>
+            <EmptyState
+              icon={BookOpen}
+              title="No novel submissions pending"
+              description="User submitted manuscripts and manga awaiting editorial approval will appear here."
+              actionLabel={searchQuery ? 'Clear Search' : undefined}
+              onAction={searchQuery ? () => setSearchQuery('') : undefined}
+            />
           ) : (
             filteredNovelSubmissions.map((sub) => (
               <div
@@ -561,9 +580,11 @@ export const AdminModeration: React.FC<{
               >
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <img
+                    <SafeImage
                       src={sub.coverImage}
                       alt={sub.title}
+                      fallbackType="novel"
+                      fallbackTitle={sub.title}
                       className="w-12 h-16 rounded-xl object-cover border border-zinc-800 bg-zinc-950 shrink-0"
                     />
                     <div>
@@ -668,9 +689,13 @@ export const AdminModeration: React.FC<{
       {activeTab === 'users' && (
         <div className="space-y-3">
           {filteredUsers.length === 0 ? (
-            <div className="py-16 text-center bg-[#0b0e15] rounded-2xl border border-zinc-800 p-6 space-y-2">
-              <p className="text-xs text-zinc-400">No user accounts found.</p>
-            </div>
+            <EmptyState
+              icon={User}
+              title="No users found"
+              description="No user profiles or creator accounts match your filter criteria."
+              actionLabel={searchQuery ? 'Clear Search' : undefined}
+              onAction={searchQuery ? () => setSearchQuery('') : undefined}
+            />
           ) : (
             filteredUsers.map((user) => (
               <div
@@ -678,9 +703,11 @@ export const AdminModeration: React.FC<{
                 className="bg-[#0e121a] p-4 sm:p-5 rounded-2xl border border-zinc-800 hover:border-zinc-700 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
               >
                 <div className="flex items-center gap-3.5 min-w-0">
-                  <img
+                  <SafeImage
                     src={user.avatar}
                     alt={user.name}
+                    fallbackType="avatar"
+                    fallbackTitle={user.name}
                     className="w-12 h-12 rounded-xl object-cover bg-zinc-900 border border-zinc-800 shrink-0"
                   />
                   <div className="min-w-0 space-y-0.5">

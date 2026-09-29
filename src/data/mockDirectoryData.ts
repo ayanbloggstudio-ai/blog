@@ -1,3 +1,3 @@
-import { DirectoryItem } from '../types';
+import { DirectoryItem } from '../types/directory';
 
 export const DIRECTORY_ITEMS: DirectoryItem[] = [];

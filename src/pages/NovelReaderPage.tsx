@@ -28,6 +28,7 @@ import {
 import { NovelItem, NovelChapter, ReaderSettings } from '../types/novel';
 import { useNovels } from '../context/NovelContext';
 import { useDiscovery } from '../context/DiscoveryContext';
+import { useTheme } from '../context/ThemeContext';
 
 interface NovelReaderPageProps {
   novel: NovelItem;
@@ -52,6 +53,7 @@ export const NovelReaderPage: React.FC<NovelReaderPageProps> = ({ novel, chapter
   } = useNovels();
 
   const { showToast } = useDiscovery();
+  const { resolvedTheme } = useTheme();
 
   // Settings dropdown modal state
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -67,19 +69,21 @@ export const NovelReaderPage: React.FC<NovelReaderPageProps> = ({ novel, chapter
   // Content ref for scroll tracking
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Current chapter
+  // Current chapter safely resolved
+  const chaptersList = novel?.chapters || [];
   const currentChapter = useMemo(() => {
-    return novel.chapters.find(c => c.chapterNumber === chapterNumber) || novel.chapters[0];
-  }, [novel, chapterNumber]);
+    return chaptersList.find(c => c.chapterNumber === chapterNumber) || chaptersList[0] || null;
+  }, [chaptersList, chapterNumber]);
 
-  const hasPrev = currentChapter.chapterNumber > 1;
-  const hasNext = currentChapter.chapterNumber < novel.chapters.length;
+  const hasPrev = Boolean(currentChapter && currentChapter.chapterNumber > 1);
+  const hasNext = Boolean(currentChapter && currentChapter.chapterNumber < chaptersList.length);
 
   const isSaved = isNovelSaved(novel.id);
-  const chapterComments = getNovelComments(novel.id, currentChapter.chapterNumber);
+  const chapterComments = currentChapter ? getNovelComments(novel.id, currentChapter.chapterNumber) : [];
 
   // Track scroll percentage and save progress
   useEffect(() => {
+    if (!currentChapter) return;
     const handleScroll = () => {
       const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
       if (totalHeight <= 0) return;
@@ -93,11 +97,11 @@ export const NovelReaderPage: React.FC<NovelReaderPageProps> = ({ novel, chapter
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [novel.id, currentChapter.chapterNumber, updateReadingProgress]);
+  }, [novel.id, currentChapter, updateReadingProgress]);
 
   // Navigate to previous chapter
   const goToPrev = () => {
-    if (hasPrev) {
+    if (hasPrev && currentChapter) {
       openReader(novel.id, currentChapter.chapterNumber - 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -105,7 +109,7 @@ export const NovelReaderPage: React.FC<NovelReaderPageProps> = ({ novel, chapter
 
   // Navigate to next chapter
   const goToNext = () => {
-    if (hasNext) {
+    if (hasNext && currentChapter) {
       openReader(novel.id, currentChapter.chapterNumber + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
@@ -125,7 +129,7 @@ export const NovelReaderPage: React.FC<NovelReaderPageProps> = ({ novel, chapter
 
   const handlePostChapterComment = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!commentText.trim()) return;
+    if (!commentText.trim() || !currentChapter) return;
     addNovelComment(
       novel.id,
       commentText.trim(),
@@ -139,14 +143,17 @@ export const NovelReaderPage: React.FC<NovelReaderPageProps> = ({ novel, chapter
   // Theme Styling Classes
   const getThemeClasses = () => {
     switch (readerSettings.theme) {
-      case 'light':
-        return 'bg-[#f8f9fa] text-zinc-900 selection:bg-indigo-200';
       case 'sepia':
         return 'bg-[#fbf0d9] text-[#3e2f1c] selection:bg-[#ecd8b0]';
       case 'black':
         return 'bg-[#000000] text-zinc-200 selection:bg-zinc-800';
+      case 'light':
+        return 'bg-[#f8fafc] text-[#172033] selection:bg-indigo-100';
       case 'dark':
       default:
+        if (resolvedTheme === 'light') {
+          return 'bg-[#f8fafc] text-[#172033] selection:bg-indigo-100';
+        }
         return 'bg-[#0b0e14] text-zinc-200 selection:bg-indigo-900/60';
     }
   };
@@ -194,11 +201,33 @@ export const NovelReaderPage: React.FC<NovelReaderPageProps> = ({ novel, chapter
 
   // Split story into paragraphs
   const paragraphs = useMemo(() => {
+    if (!currentChapter || !currentChapter.content) return [];
     return currentChapter.content
       .split('\n\n')
       .map(p => p.trim())
       .filter(Boolean);
-  }, [currentChapter.content]);
+  }, [currentChapter]);
+
+  if (!currentChapter) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center text-center p-8">
+        <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-indigo-400 mb-4 shadow-xl">
+          <ListOrdered className="w-8 h-8" />
+        </div>
+        <h2 className="text-xl font-bold text-white mb-2">No Chapters Available</h2>
+        <p className="text-sm text-zinc-400 max-w-md mb-6">
+          This series does not have any published chapters yet or the requested chapter could not be found.
+        </p>
+        <button
+          onClick={closeReader}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition-colors shadow-lg shadow-indigo-600/25"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Series Overview</span>
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen -mx-3 sm:-mx-6 lg:-mx-8 -my-6 sm:-my-8 px-4 sm:px-6 transition-colors duration-200 ${getThemeClasses()}`}>
@@ -243,7 +272,7 @@ export const NovelReaderPage: React.FC<NovelReaderPageProps> = ({ novel, chapter
           >
             <ListOrdered className="w-3.5 h-3.5 text-indigo-400" />
             <span className="hidden sm:inline">Chapters</span>
-            <span className="text-[10px] text-zinc-400 font-mono">({currentChapter.chapterNumber}/{novel.chapters.length})</span>
+            <span className="text-[10px] text-zinc-400 font-mono">({currentChapter.chapterNumber}/{novel.chapters?.length || 0})</span>
           </button>
 
           {/* Bookmark Button */}
@@ -300,7 +329,7 @@ export const NovelReaderPage: React.FC<NovelReaderPageProps> = ({ novel, chapter
               <button
                 onClick={() => updateReaderSettings({ theme: 'dark' })}
                 className={`py-2 rounded-xl border text-xs font-bold transition-all flex flex-col items-center gap-1 ${
-                  readerSettings.theme === 'dark'
+                  readerSettings.theme === 'dark' && resolvedTheme !== 'light'
                     ? 'border-indigo-500 bg-zinc-800 text-white shadow-sm'
                     : 'border-zinc-800 bg-zinc-950 text-zinc-400'
                 }`}
@@ -324,7 +353,7 @@ export const NovelReaderPage: React.FC<NovelReaderPageProps> = ({ novel, chapter
               <button
                 onClick={() => updateReaderSettings({ theme: 'light' })}
                 className={`py-2 rounded-xl border text-xs font-bold transition-all flex flex-col items-center gap-1 ${
-                  readerSettings.theme === 'light'
+                  readerSettings.theme === 'light' || (readerSettings.theme === 'dark' && resolvedTheme === 'light')
                     ? 'border-indigo-500 bg-zinc-100 text-zinc-950 shadow-sm'
                     : 'border-zinc-800 bg-zinc-800 text-zinc-300'
                 }`}
@@ -509,7 +538,7 @@ export const NovelReaderPage: React.FC<NovelReaderPageProps> = ({ novel, chapter
             onClick={() => setIsChapterDrawerOpen(true)}
             className="px-3.5 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs font-semibold text-zinc-300"
           >
-            Ch. {currentChapter.chapterNumber} / {novel.chapters.length}
+            Ch. {currentChapter.chapterNumber} / {novel.chapters?.length || 0}
           </button>
 
           <button
@@ -642,7 +671,7 @@ export const NovelReaderPage: React.FC<NovelReaderPageProps> = ({ novel, chapter
               </div>
 
               <div className="mt-4 space-y-1.5 max-h-[75vh] overflow-y-auto pr-1">
-                {novel.chapters.map((ch) => {
+                {(novel.chapters || []).map((ch) => {
                   const isCurrent = ch.chapterNumber === currentChapter.chapterNumber;
                   return (
                     <button

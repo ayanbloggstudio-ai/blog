@@ -18,7 +18,7 @@ import { EmptyState } from '../components/EmptyState';
 import { DirectoryCategory } from '../types/directory';
 
 interface DirectoryIndexPageProps {
-  initialCategory?: DirectoryCategory;
+  initialCategory?: DirectoryCategory | 'all';
 }
 
 export const DirectoryIndexPage: React.FC<DirectoryIndexPageProps> = ({ initialCategory }) => {

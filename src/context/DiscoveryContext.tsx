@@ -31,7 +31,7 @@ export const AVAILABLE_INTERESTS: { id: UserInterest; label: string; description
 export interface ToastMessage {
   id: string;
   message: string;
-  type?: 'success' | 'info' | 'undo';
+  type?: 'success' | 'info' | 'undo' | 'error';
   undoAction?: () => void;
 }
 
@@ -41,6 +41,11 @@ interface DiscoveryContextType {
   currentRoute: PageRoute;
   navigateTo: (route: PageRoute, itemId?: string) => void;
   activeDetailItem: DiscoveryItem | null;
+  selectedItem: DiscoveryItem | null;
+  setSelectedItem: (item: DiscoveryItem | null) => void;
+  isLoadingMore: boolean;
+  hasMore: boolean;
+  loadMoreItems: () => void;
   
   // Structured Directory State
   directoryItems: DirectoryItem[];
@@ -110,7 +115,7 @@ interface DiscoveryContextType {
   // Toast notifications
   toasts: ToastMessage[];
   removeToast: (id: string) => void;
-  showToast: (message: string, type?: 'success' | 'info' | 'undo', undoAction?: () => void) => void;
+  showToast: (message: string, type?: 'success' | 'info' | 'undo' | 'error', undoAction?: () => void) => void;
   
   // Modals & Overlays
   isSearchOpen: boolean;
@@ -157,9 +162,11 @@ export const DiscoveryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       id: col.id,
       title: col.title,
       subtitle: col.subtitle,
+      description: col.subtitle || col.title,
+      coverImage: '',
       category: (col.categoryId === 'cat-ai' ? 'ai-tools' : col.categoryId === 'cat-tech' ? 'tech-products' : col.categoryId === 'cat-movies' ? 'movies' : col.categoryId === 'cat-anime' ? 'manhwa' : 'all') as any,
       categoryName: col.categoryName,
-      type: col.type,
+      type: (col.type === 'top-10' || col.type === 'top-20' ? col.type : 'recommendation') as 'top-10' | 'top-20' | 'recommendation',
       itemIds: col.itemIds,
       curatorNotes: col.curatorNotes,
       targetAudience: col.targetAudience,
@@ -204,7 +211,7 @@ export const DiscoveryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // Toasts
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
-  const showToast = useCallback((message: string, type: 'success' | 'info' | 'undo' = 'success', undoAction?: () => void) => {
+  const showToast = useCallback((message: string, type: 'success' | 'info' | 'undo' | 'error' = 'success', undoAction?: () => void) => {
     const id = Date.now().toString() + Math.random().toString(36).substring(2, 5);
     setToasts(prev => [...prev.slice(-3), { id, message, type, undoAction }]);
     if (!undoAction) {
@@ -247,18 +254,18 @@ export const DiscoveryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [savedIds, setSavedIds] = useState<string[]>(() => {
     try {
       const stored = localStorage.getItem(SAVED_STORAGE_KEY);
-      return stored ? JSON.parse(stored) : ['ai-01', 'mov-01'];
+      return stored ? JSON.parse(stored) : [];
     } catch {
-      return ['ai-01', 'mov-01'];
+      return [];
     }
   });
 
   const [userSparkedIds, setUserSparkedIds] = useState<string[]>(() => {
     try {
       const stored = localStorage.getItem(SPARKED_STORAGE_KEY);
-      return stored ? JSON.parse(stored) : ['ai-01'];
+      return stored ? JSON.parse(stored) : [];
     } catch {
-      return ['ai-01'];
+      return [];
     }
   });
 
@@ -543,7 +550,7 @@ export const DiscoveryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     if (itemId) {
       const item = items.find(i => i.id === itemId) || directoryItems.find(d => d.id === itemId);
       if (item) {
-        trackContentOpen({ id: item.id, title: item.title, category: item.category, contentType: item.contentType });
+        trackContentOpen({ id: item.id, title: item.title, category: item.category, contentType: (item as any).contentType || 'article' });
       }
       if (route === 'detail') {
         setActiveDetailId(itemId);
@@ -585,6 +592,61 @@ export const DiscoveryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     if (!activeDetailId) return null;
     return items.find(item => item.id === activeDetailId) || null;
   }, [items, activeDetailId]);
+
+  // Dynamic SEO Page Titles & Meta Descriptions
+  useEffect(() => {
+    let title = 'PRISM — Visual Discovery';
+    let desc = 'Explore visual breakdowns, interactive tools, cinematography, and webtoon art.';
+
+    if (currentRoute === 'detail' && activeDetailItem) {
+      title = `${activeDetailItem.title} | PRISM Discovery`;
+      desc = activeDetailItem.summary || activeDetailItem.tagline || desc;
+    } else if (currentRoute === 'trending') {
+      title = 'Trending Discoveries & Velocity Index | PRISM';
+      desc = 'Real-time trending ranking powered by views, saves, likes, and discussion engagement.';
+    } else if (currentRoute === 'latest') {
+      title = 'Latest Drops & Visual Breakdowns | PRISM';
+      desc = 'Freshly published visual deep-dives, tech analysis, and cinematic explorations.';
+    } else if (currentRoute === 'community') {
+      title = 'Community Discovery & Products | PRISM';
+      desc = 'Explore curated digital software tools, apps, and physical hardware architectures.';
+    } else if (currentRoute === 'novels') {
+      title = 'Web Novels & Manga Chronicles | PRISM';
+      desc = 'Serialized fiction, cultivation epics, and webtoons with bookmarking and progress tracking.';
+    } else if (currentRoute === 'directories' || currentRoute.startsWith('directory-')) {
+      title = 'Directories & Curated Stacks | PRISM';
+      desc = 'Categorized tech platforms, AI models, developer tools, and entertainment catalogs.';
+    } else if (currentRoute === 'search') {
+      title = 'Search Discoveries & Content | PRISM';
+      desc = 'Search products, tools, novels, manga, and visual breakdowns across PRISM.';
+    } else if (currentRoute === 'category-ai') {
+      title = 'AI & Tools — Visual Deep Dives | PRISM';
+      desc = 'Neural rendering, spatial computing, and AI architectures explored visually.';
+    } else if (currentRoute === 'category-tech') {
+      title = 'Tech & Hardware Breakdown | PRISM';
+      desc = 'Cyberdecks, micro-architectures, and hardware teardowns.';
+    } else if (currentRoute === 'category-movies') {
+      title = 'Movies & TV Cinematography | PRISM';
+      desc = 'Color palettes, optical framing, and directorial visual grammar.';
+    } else if (currentRoute === 'category-anime') {
+      title = 'Manhwa & Anime Visual Chronicles | PRISM';
+      desc = 'Sakuga animation, webtoon paneling, and graphic storytelling.';
+    }
+
+    document.title = title;
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+      metaDesc.setAttribute('content', desc);
+    }
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) {
+      ogTitle.setAttribute('content', title);
+    }
+    const ogDesc = document.querySelector('meta[property="og:description"]');
+    if (ogDesc) {
+      ogDesc.setAttribute('content', desc);
+    }
+  }, [currentRoute, activeDetailItem]);
 
   // Smart Related Content
   const getRelatedItems = useCallback((targetItem: DiscoveryItem, limit = 3): DiscoveryItem[] => {
@@ -789,6 +851,17 @@ export const DiscoveryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         currentRoute,
         navigateTo,
         activeDetailItem,
+        selectedItem: activeDetailItem,
+        setSelectedItem: (item: DiscoveryItem | null) => {
+          if (item) {
+            navigateTo('detail', item.id);
+          } else {
+            setActiveDetailId(null);
+          }
+        },
+        isLoadingMore: false,
+        hasMore: false,
+        loadMoreItems: () => {},
         directoryItems,
         curatedLists,
         activeDirectoryItemId,

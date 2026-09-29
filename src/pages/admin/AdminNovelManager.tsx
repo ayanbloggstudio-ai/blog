@@ -635,11 +635,11 @@ export const AdminNovelManager: React.FC = () => {
                         {chaptersCount} Chapters
                       </span>
                       <span>•</span>
-                      <span>{item.views.toLocaleString()} Views</span>
+                      <span>{(item.views || 0).toLocaleString()} Views</span>
                       <span>•</span>
-                      <span>{item.likes} Likes</span>
+                      <span>{item.likes || 0} Likes</span>
                       <span>•</span>
-                      <span>{item.saves} Saves</span>
+                      <span>{item.saves || 0} Saves</span>
                       <span>•</span>
                       <span>Score: {item.trendingScore || 50}</span>
                       <span>•</span>

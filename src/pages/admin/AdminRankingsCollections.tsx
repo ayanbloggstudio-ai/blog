@@ -18,6 +18,8 @@ import { useCMS } from '../../context/CMSContext';
 import { useDiscovery } from '../../context/DiscoveryContext';
 import { CMSCollection } from '../../types/cms';
 import { AdminCommunityRanking } from './AdminCommunityRanking';
+import { EmptyState } from '../../components/EmptyState';
+import { SafeImage } from '../../components/SafeImage';
 
 export const AdminRankingsCollections: React.FC = () => {
   const {
@@ -260,12 +262,21 @@ export const AdminRankingsCollections: React.FC = () => {
 
       {/* Existing Collections List */}
       <div className="space-y-6">
-        {collections.map((col) => {
-          return (
-            <div
-              key={col.id}
-              className="p-6 rounded-3xl bg-[#0e121a] border border-zinc-800 space-y-4"
-            >
+        {collections.length === 0 ? (
+          <EmptyState
+            icon={Layers}
+            title="No curated ranking lists created yet"
+            description="Create your first Top 10 or Top 20 editorial stack using the '+ New Curated List' button above."
+            actionLabel="+ New Curated List"
+            onAction={() => setIsCreating(true)}
+          />
+        ) : (
+          collections.map((col) => {
+            return (
+              <div
+                key={col.id}
+                className="p-6 rounded-3xl bg-[#0e121a] border border-zinc-800 space-y-4"
+              >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-zinc-800">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
@@ -336,9 +347,11 @@ export const AdminRankingsCollections: React.FC = () => {
                             #{idx + 1}
                           </span>
                           {itemData?.coverImage && (
-                            <img
+                            <SafeImage
                               src={itemData.coverImage}
-                              alt=""
+                              alt={itemData?.title || ''}
+                              fallbackType="article"
+                              fallbackTitle={itemData?.title}
                               className="w-10 h-10 rounded-lg object-cover bg-zinc-900 shrink-0"
                             />
                           )}
@@ -409,7 +422,8 @@ export const AdminRankingsCollections: React.FC = () => {
               </div>
             </div>
           );
-        })}
+        })
+      )}
       </div>
     </>
   )}

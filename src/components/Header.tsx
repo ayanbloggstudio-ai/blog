@@ -14,11 +14,17 @@ import {
   Users,
   BookOpen,
   Sun,
-  Moon
+  Moon,
+  User as UserIcon,
+  LogIn,
+  LogOut,
+  Shield,
+  ChevronDown
 } from 'lucide-react';
 import { useDiscovery } from '../context/DiscoveryContext';
 import { useCMS } from '../context/CMSContext';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 import { PageRoute } from '../types/discovery';
 
 export const Header: React.FC = () => {
@@ -34,10 +40,12 @@ export const Header: React.FC = () => {
     resetFeed
   } = useDiscovery();
 
-  const { getPublicCategories } = useCMS();
+  const { getPublicCategories, setIsAdminViewOpen } = useCMS();
   const { resolvedTheme, toggleTheme } = useTheme();
+  const { user, isAdmin, openAuthModal, logout } = useAuth();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
   // Dynamic public categories that obey CMS Active & Published rules
   const publicNavCategories = getPublicCategories('navigation');
@@ -248,6 +256,104 @@ export const Header: React.FC = () => {
             )}
           </button>
 
+          {/* User Account / Authentication */}
+          {user ? (
+            <div className="relative">
+              <button
+                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                className="flex items-center gap-1.5 p-1 sm:px-2.5 sm:py-1 rounded-full bg-zinc-900/90 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 hover:border-zinc-700 transition-all text-xs font-semibold shadow-sm shrink-0 cursor-pointer"
+              >
+                <img
+                  src={user.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(user.name)}`}
+                  alt={user.name}
+                  className="w-5 h-5 rounded-full object-cover bg-zinc-800 shrink-0"
+                />
+                <span className="hidden sm:inline max-w-[80px] truncate">{user.name.split(' ')[0]}</span>
+                {isAdmin && (
+                  <span className="hidden md:inline text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-300 border border-emerald-800/60 uppercase">
+                    Admin
+                  </span>
+                )}
+                <ChevronDown className="w-3 h-3 text-zinc-500" />
+              </button>
+
+              {userDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-[#0e121a] border border-zinc-800 shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-1">
+                  <div className="px-3 py-2 border-b border-zinc-850">
+                    <p className="text-xs font-bold text-white truncate">{user.name}</p>
+                    <p className="text-[11px] text-zinc-400 truncate">{user.email}</p>
+                    <div className="mt-1.5 flex items-center gap-1.5">
+                      <span className="text-[9px] uppercase font-mono font-bold px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
+                        {user.role}
+                      </span>
+                      <span className="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                        <span>Active</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {isAdmin && (
+                    <button
+                      onClick={() => {
+                        setUserDropdownOpen(false);
+                        setIsAdminViewOpen(true);
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-emerald-400 hover:bg-emerald-950/40 transition-colors text-left cursor-pointer"
+                    >
+                      <Shield className="w-3.5 h-3.5" />
+                      <span>Admin CMS Console</span>
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => {
+                      setUserDropdownOpen(false);
+                      setIsSavedOpen(true);
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-zinc-300 hover:bg-zinc-850 hover:text-white transition-colors text-left cursor-pointer"
+                  >
+                    <Bookmark className="w-3.5 h-3.5 text-zinc-400" />
+                    <span>Saved Discoveries ({savedIds.length})</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setUserDropdownOpen(false);
+                      handleRouteNav('novels');
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-zinc-300 hover:bg-zinc-850 hover:text-white transition-colors text-left cursor-pointer"
+                  >
+                    <BookOpen className="w-3.5 h-3.5 text-zinc-400" />
+                    <span>My Reading & Stories</span>
+                  </button>
+
+                  <div className="pt-1 border-t border-zinc-850">
+                    <button
+                      onClick={async () => {
+                        setUserDropdownOpen(false);
+                        await logout();
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-rose-400 hover:bg-rose-950/40 transition-colors text-left cursor-pointer"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button
+              onClick={() => openAuthModal('login')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-xs shadow-md shadow-emerald-500/20 transition-all cursor-pointer shrink-0"
+              title="Sign in to your PRISM account"
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              <span>Sign In</span>
+            </button>
+          )}
+
           {/* Mobile Navigation Menu Toggle */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -414,6 +520,56 @@ export const Header: React.FC = () => {
                 Switch to {resolvedTheme === 'dark' ? 'Light' : 'Dark'}
               </button>
             </div>
+
+            {/* Mobile Auth Button */}
+            {user ? (
+              <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <img
+                      src={user.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(user.name)}`}
+                      alt={user.name}
+                      className="w-7 h-7 rounded-full object-cover bg-zinc-800"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-white truncate">{user.name}</p>
+                      <span className="text-[10px] text-zinc-400 capitalize">{user.role}</span>
+                    </div>
+                  </div>
+                  {isAdmin && (
+                    <button
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        setIsAdminViewOpen(true);
+                      }}
+                      className="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold"
+                    >
+                      Admin
+                    </button>
+                  )}
+                </div>
+                <button
+                  onClick={async () => {
+                    setMobileMenuOpen(false);
+                    await logout();
+                  }}
+                  className="w-full py-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-bold text-center"
+                >
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  openAuthModal('login');
+                }}
+                className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/20"
+              >
+                <LogIn className="w-4 h-4" />
+                <span>Sign In / Create Account</span>
+              </button>
+            )}
           </div>
         </div>
       )}

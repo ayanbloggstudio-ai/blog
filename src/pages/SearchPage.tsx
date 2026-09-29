@@ -68,12 +68,10 @@ export const SearchPage: React.FC = () => {
       if (!query) return true;
       return (
         (prod.name || '').toLowerCase().includes(query) ||
-        (prod.tagline || '').toLowerCase().includes(query) ||
+        (prod.shortDescription || '').toLowerCase().includes(query) ||
         (prod.description || '').toLowerCase().includes(query) ||
         (prod.category || '').toLowerCase().includes(query) ||
-        (prod.subCategory || '').toLowerCase().includes(query) ||
-        (prod.tags || []).some(t => (t || '').toLowerCase().includes(query)) ||
-        (prod.makerName || '').toLowerCase().includes(query)
+        (prod.tags || []).some(t => (t || '').toLowerCase().includes(query))
       );
     });
   }, [products, query]);
@@ -278,10 +276,6 @@ export const SearchPage: React.FC = () => {
                   <NovelCard
                     key={novel.id}
                     novel={novel}
-                    onOpen={() => {
-                      openNovel(novel.id);
-                      navigateTo('novels');
-                    }}
                   />
                 ))}
               </div>

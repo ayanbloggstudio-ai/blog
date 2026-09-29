@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useCMS } from '../../context/CMSContext';
 import { useDiscovery } from '../../context/DiscoveryContext';
+import { EmptyState } from '../../components/EmptyState';
 
 export const AdminComparisons: React.FC = () => {
   const {
@@ -181,67 +182,77 @@ export const AdminComparisons: React.FC = () => {
       )}
 
       {/* Comparisons List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {(comparisons || []).map((comp) => {
-          const matchedItems = (items || []).filter((i) => i && (comp.itemIds || []).includes(i.id));
+      {(comparisons || []).length === 0 ? (
+        <EmptyState
+          icon={Scale}
+          title="No comparison matrices created yet"
+          description="Create head-to-head architectural or product comparisons using '+ Create Comparison Matrix' above."
+          actionLabel="+ Create Comparison Matrix"
+          onAction={() => setIsCreating(true)}
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {(comparisons || []).map((comp) => {
+            const matchedItems = (items || []).filter((i) => i && (comp.itemIds || []).includes(i.id));
 
-          return (
-            <div
-              key={comp.id}
-              className="p-5 rounded-3xl bg-[#0e121a] border border-zinc-800 space-y-3 flex flex-col justify-between"
-            >
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-950 text-cyan-300 border border-cyan-800">
-                    Matrix Pair
+            return (
+              <div
+                key={comp.id}
+                className="p-5 rounded-3xl bg-[#0e121a] border border-zinc-800 space-y-3 flex flex-col justify-between"
+              >
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-950 text-cyan-300 border border-cyan-800">
+                      Matrix Pair
+                    </span>
+                    <button
+                      onClick={() => {
+                        deleteComparison(comp.id);
+                        showToast(`Deleted comparison`, 'info');
+                      }}
+                      className="p-1.5 rounded-lg text-zinc-400 hover:text-rose-400"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  <h3 className="text-base font-bold text-white">
+                    {comp.title}
+                  </h3>
+
+                  <p className="text-xs text-zinc-400 leading-relaxed">
+                    {comp.notes}
+                  </p>
+
+                  <div className="pt-2 flex flex-wrap gap-2">
+                    {matchedItems.map((m) => (
+                      <span
+                        key={m.id}
+                        className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-zinc-900 text-zinc-300 border border-zinc-800"
+                      >
+                        {m.title}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-zinc-850 flex items-center justify-between">
+                  <span className="text-[11px] text-zinc-500 font-mono">
+                    {comp.itemIds.length} items mapped
                   </span>
                   <button
-                    onClick={() => {
-                      deleteComparison(comp.id);
-                      showToast(`Deleted comparison`, 'info');
-                    }}
-                    className="p-1.5 rounded-lg text-zinc-400 hover:text-rose-400"
+                    onClick={() => openComparison(comp.itemIds)}
+                    className="text-xs text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-1"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Preview Matrix</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
                   </button>
                 </div>
-
-                <h3 className="text-base font-bold text-white">
-                  {comp.title}
-                </h3>
-
-                <p className="text-xs text-zinc-400 leading-relaxed">
-                  {comp.notes}
-                </p>
-
-                <div className="pt-2 flex flex-wrap gap-2">
-                  {matchedItems.map((m) => (
-                    <span
-                      key={m.id}
-                      className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-zinc-900 text-zinc-300 border border-zinc-800"
-                    >
-                      {m.title}
-                    </span>
-                  ))}
-                </div>
               </div>
-
-              <div className="pt-3 border-t border-zinc-850 flex items-center justify-between">
-                <span className="text-[11px] text-zinc-500 font-mono">
-                  {comp.itemIds.length} items mapped
-                </span>
-                <button
-                  onClick={() => openComparison(comp.itemIds)}
-                  className="text-xs text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-1"
-                >
-                  <span>Preview Matrix</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

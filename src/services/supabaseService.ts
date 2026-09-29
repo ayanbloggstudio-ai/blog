@@ -146,32 +146,222 @@ create table if not exists public.cms_trends (
   updated_at text not null
 );
 
--- 8. Enable Row Level Security (RLS) & Public Read Access
+-- 8. Community Users Table
+create table if not exists public.community_users (
+  id text primary key,
+  name text not null,
+  email text not null unique,
+  avatar text default '',
+  role text not null default 'member',
+  status text not null default 'active',
+  bio text default '',
+  joined_date text not null,
+  contributions_count integer default 0,
+  warnings_count integer default 0,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 9. Community Products Table (Digital & Physical)
+create table if not exists public.community_products (
+  id text primary key,
+  name text not null,
+  slug text not null,
+  short_description text default '',
+  description text not null,
+  main_category text not null default 'digital',
+  category text not null,
+  image text not null,
+  logo text default '',
+  key_features jsonb default '[]'::jsonb,
+  price_status text default 'Free',
+  price text default '',
+  official_website_url text default '',
+  affiliate_url text default '',
+  affiliate_cta_text text default 'Try Now',
+  affiliate_disclosure text default '',
+  featured boolean default false,
+  status text not null default 'published',
+  tags jsonb default '[]'::jsonb,
+  is_pinned boolean default false,
+  is_trending_manual boolean default false,
+  maker_name text default 'PRISM Verified',
+  maker_avatar text default '',
+  maker_verified boolean default true,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 10. Community Comments & Reviews Table
+create table if not exists public.community_comments (
+  id text primary key,
+  product_id text not null references public.community_products(id) on delete cascade,
+  user_id text references public.community_users(id) on delete set null,
+  author_name text not null,
+  author_avatar text default '',
+  author_role text default 'Community Member',
+  rating numeric,
+  title text default '',
+  content text not null,
+  status text not null default 'published',
+  is_approved boolean default true,
+  is_user_hidden boolean default false,
+  helpful_count integer default 0,
+  reports_count integer default 0,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 11. Community Reports Table
+create table if not exists public.community_reports (
+  id text primary key,
+  target_type text not null,
+  target_id text not null,
+  target_title text default '',
+  content text default '',
+  author_name text default '',
+  reporter_id text,
+  reporter_name text not null,
+  reason text not null,
+  date text not null,
+  status text not null default 'pending',
+  action_notes text default '',
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 12. Referral Clicks Tracking Table
+create table if not exists public.referral_clicks (
+  id text primary key,
+  product_id text not null,
+  product_title text not null,
+  category text not null,
+  main_category text not null,
+  target_url text not null,
+  is_affiliate boolean not null default true,
+  referrer text default '',
+  timestamp text not null,
+  estimated_revenue numeric default 0,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 13. Web Novels & Manga / Manhwa Table
+create table if not exists public.novels (
+  id text primary key,
+  title text not null,
+  slug text not null,
+  synopsis text not null,
+  cover_image text not null,
+  author text not null,
+  artist text default '',
+  genres jsonb default '["Fantasy"]'::jsonb,
+  tags jsonb default '[]'::jsonb,
+  status text not null default 'published',
+  type text not null default 'novel',
+  is_original boolean default false,
+  is_featured boolean default false,
+  is_trending boolean default false,
+  release_frequency text default 'Weekly',
+  submission_notes text default '',
+  rejection_reason text default '',
+  creator_user_id text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 14. Novel Chapters Table
+create table if not exists public.novel_chapters (
+  id text primary key,
+  novel_id text not null references public.novels(id) on delete cascade,
+  chapter_number integer not null,
+  title text not null,
+  content text not null,
+  publish_date text not null,
+  views integer default 0,
+  likes integer default 0,
+  comments_count integer default 0,
+  is_free boolean default true,
+  scheduled_at text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 15. User Engagements Table (Likes, Saves, Bookmarks)
+create table if not exists public.user_engagements (
+  id text primary key,
+  user_id text not null,
+  target_type text not null,
+  target_id text not null,
+  action text not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 16. Activity Events Table (Real Trending Time-Decay Engine)
+create table if not exists public.activity_events (
+  id text primary key,
+  target_type text not null,
+  target_id text not null,
+  event_type text not null,
+  user_id text,
+  timestamp bigint not null
+);
+
+-- 17. Enable Row Level Security (RLS) & Public Read Access
 alter table public.cms_categories enable row level security;
 alter table public.cms_items enable row level security;
 alter table public.cms_collections enable row level security;
 alter table public.cms_comparisons enable row level security;
 alter table public.cms_media_assets enable row level security;
 alter table public.cms_trends enable row level security;
+alter table public.community_users enable row level security;
+alter table public.community_products enable row level security;
+alter table public.community_comments enable row level security;
+alter table public.community_reports enable row level security;
+alter table public.referral_clicks enable row level security;
+alter table public.novels enable row level security;
+alter table public.novel_chapters enable row level security;
+alter table public.user_engagements enable row level security;
+alter table public.activity_events enable row level security;
 
--- Create Open Read Policies (Public Discovery Access)
+-- Open Select Policies for Public Discovery
 create policy "Allow public read access on cms_categories" on public.cms_categories for select using (true);
 create policy "Allow public read access on cms_items" on public.cms_items for select using (true);
 create policy "Allow public read access on cms_collections" on public.cms_collections for select using (true);
 create policy "Allow public read access on cms_comparisons" on public.cms_comparisons for select using (true);
 create policy "Allow public read access on cms_media_assets" on public.cms_media_assets for select using (true);
 create policy "Allow public read access on cms_trends" on public.cms_trends for select using (true);
+create policy "Allow public read access on community_products" on public.community_products for select using (status = 'published' or status = 'featured' or status = 'trending');
+create policy "Allow public read access on community_comments" on public.community_comments for select using (status = 'published' and is_user_hidden = false);
+create policy "Allow public read access on novels" on public.novels for select using (status = 'published' or status = 'approved');
+create policy "Allow public read access on novel_chapters" on public.novel_chapters for select using (true);
+create policy "Allow user read access on own engagements" on public.user_engagements for select using (auth.uid()::text = user_id or true);
 
--- Create Full Insert/Update/Delete Policies for Anon or Authenticated
+-- Write Policies
 create policy "Allow write access on cms_categories" on public.cms_categories for all using (true) with check (true);
 create policy "Allow write access on cms_items" on public.cms_items for all using (true) with check (true);
 create policy "Allow write access on cms_collections" on public.cms_collections for all using (true) with check (true);
 create policy "Allow write access on cms_comparisons" on public.cms_comparisons for all using (true) with check (true);
 create policy "Allow write access on cms_media_assets" on public.cms_media_assets for all using (true) with check (true);
 create policy "Allow write access on cms_trends" on public.cms_trends for all using (true) with check (true);
+create policy "Allow write access on community_products" on public.community_products for all using (true) with check (true);
+create policy "Allow write access on community_comments" on public.community_comments for all using (true) with check (true);
+create policy "Allow write access on community_reports" on public.community_reports for all using (true) with check (true);
+create policy "Allow write access on referral_clicks" on public.referral_clicks for all using (true) with check (true);
+create policy "Allow write access on novels" on public.novels for all using (true) with check (true);
+create policy "Allow write access on novel_chapters" on public.novel_chapters for all using (true) with check (true);
+create policy "Allow write access on user_engagements" on public.user_engagements for all using (true) with check (true);
+create policy "Allow write access on activity_events" on public.activity_events for all using (true) with check (true);
 
--- 9. Realtime publication
-alter publication supabase_realtime add table public.cms_categories, public.cms_items, public.cms_collections, public.cms_comparisons, public.cms_media_assets, public.cms_trends;
+-- 18. Realtime publication
+alter publication supabase_realtime add table 
+  public.cms_categories, 
+  public.cms_items, 
+  public.cms_collections, 
+  public.cms_comparisons, 
+  public.cms_media_assets, 
+  public.cms_trends,
+  public.community_products,
+  public.community_comments,
+  public.novels,
+  public.novel_chapters;
 `;
 
 // Adapters: CMS Item to DB row

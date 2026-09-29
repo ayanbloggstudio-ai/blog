@@ -380,7 +380,7 @@ export const AdminAnalyticsLaunch: React.FC = () => {
                           {cm.externalClicks}
                         </td>
                         <td className="py-3 pl-4 text-right font-mono font-bold text-emerald-300">
-                          ${cm.estimatedRevenue.toFixed(2)}
+                          ${(cm.estimatedRevenue ?? 0).toFixed(2)}
                         </td>
                       </tr>
                     ))}
@@ -430,7 +430,7 @@ export const AdminAnalyticsLaunch: React.FC = () => {
                       </div>
                       <div className="flex items-center justify-between text-zinc-400">
                         <span>Monetization:</span>
-                        <span className="font-mono text-emerald-400 font-bold">${cat.affiliateRevenue.toFixed(2)}</span>
+                        <span className="font-mono text-emerald-400 font-bold">${(cat.affiliateRevenue ?? 0).toFixed(2)}</span>
                       </div>
                     </div>
                   </div>

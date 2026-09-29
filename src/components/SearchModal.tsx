@@ -60,9 +60,8 @@ export const SearchModal: React.FC = () => {
     const q = localInput.toLowerCase().trim();
     return (
       (prod.name || '').toLowerCase().includes(q) ||
-      (prod.tagline || '').toLowerCase().includes(q) ||
-      (prod.category || '').toLowerCase().includes(q) ||
-      (prod.subCategory || '').toLowerCase().includes(q)
+      (prod.shortDescription || '').toLowerCase().includes(q) ||
+      (prod.category || '').toLowerCase().includes(q)
     );
   }).slice(0, 3);
 
@@ -202,7 +201,7 @@ export const SearchModal: React.FC = () => {
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           <SafeImage
-                            src={prod.images?.[0] || prod.heroImage}
+                            src={prod.image}
                             alt={prod.name}
                             fallbackType="product"
                             fallbackTitle={prod.name}
@@ -210,13 +209,13 @@ export const SearchModal: React.FC = () => {
                           />
                           <div className="min-w-0">
                             <span className="text-[10px] font-bold text-emerald-400 uppercase">
-                              {prod.subCategory || prod.category}
+                              {prod.category}
                             </span>
                             <h4 className="text-sm font-semibold text-zinc-100 group-hover:text-emerald-300 truncate">
                               {prod.name}
                             </h4>
                             <p className="text-xs text-zinc-400 truncate">
-                              {prod.tagline}
+                              {prod.shortDescription}
                             </p>
                           </div>
                         </div>

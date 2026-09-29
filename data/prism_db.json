@@ -1,0 +1,409 @@
+{
+  "users": [
+    {
+      "id": "user-admin-01",
+      "name": "PRISM Lead Administrator",
+      "email": "admin@prism.io",
+      "passwordHash": "4e9a3b94941ebbe5aba0d41dd5959e83bc15adbbe9a0ce405c0f8c47c0f07b2044763a4e0ee53ca4eac2f431724d05f252775403fac617ae31e00a3ad33c4891",
+      "passwordSalt": "62afd5201edc480213ef03e1c2f8fa8f",
+      "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "role": "admin",
+      "status": "active",
+      "bio": "PRISM Principal Curator and Editorial Director.",
+      "joinedDate": "2026-09-29",
+      "contributionsCount": 0,
+      "warningsCount": 0
+    },
+    {
+      "id": "usr-1790664747249-ldr3z",
+      "name": "Elena Rostova",
+      "email": "elena@example.com",
+      "passwordHash": "694a864ec17e0cc6429e4e021f6dc3855c1d9a7d77953a59cdc3ee39ab38b2566e5deb994b7d620eb68ef894d90866b7290503dea540f7277e994659ef9f844f",
+      "passwordSalt": "4ea2c8127546fba284b4e50a174dbbe4",
+      "avatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Elena%20Rostova",
+      "role": "member",
+      "status": "active",
+      "bio": "Tech explorer and novel enthusiast.",
+      "joinedDate": "2026-09-29",
+      "contributionsCount": 0,
+      "warningsCount": 0
+    }
+  ],
+  "sessions": [
+    {
+      "token": "token-a84a3d7b6945649f0d04568cac541f9a284926f41c713362ee8b52dd7df95e2e",
+      "userId": "user-admin-01",
+      "role": "admin",
+      "createdAt": "2026-09-29T06:52:15.120Z",
+      "expiresAt": "2026-10-29T06:52:15.120Z"
+    },
+    {
+      "token": "token-cd66914e6bba68fe899b1d6a0b1da676c034d0fdb8b8325980d0e4da81179031",
+      "userId": "user-admin-01",
+      "role": "admin",
+      "createdAt": "2026-09-29T06:52:27.225Z",
+      "expiresAt": "2026-10-29T06:52:27.225Z"
+    },
+    {
+      "token": "token-93ad4bff7289f0e511fe244006f9d5c49407c3953db5c95e0fe3c2dc03b6b3d7",
+      "userId": "usr-1790664747249-ldr3z",
+      "role": "member",
+      "createdAt": "2026-09-29T06:52:27.249Z",
+      "expiresAt": "2026-10-29T06:52:27.249Z"
+    },
+    {
+      "token": "token-211b0506598f39e8c1715130870f417bb95bbc95475b32aa43e3e437bbb57cac",
+      "userId": "usr-1790664747249-ldr3z",
+      "role": "member",
+      "createdAt": "2026-09-29T06:52:42.347Z",
+      "expiresAt": "2026-10-29T06:52:42.347Z"
+    },
+    {
+      "token": "token-75b00e6360870478c1007654529ef06b6029a5102c8e077e94c25cc8fcf605c8",
+      "userId": "user-admin-01",
+      "role": "admin",
+      "createdAt": "2026-09-29T06:52:42.379Z",
+      "expiresAt": "2026-10-29T06:52:42.379Z"
+    },
+    {
+      "token": "token-8f55148373aaaeb878fbfc01055873ea79ef26dcdb19f787744d72bd167d320c",
+      "userId": "user-admin-01",
+      "role": "admin",
+      "createdAt": "2026-09-29T07:03:35.846Z",
+      "expiresAt": "2026-10-29T07:03:35.846Z"
+    },
+    {
+      "token": "token-6cc7141eaa3ab743051c68bc385571744e37c40d21d34255ef227f3f5cb5b3c4",
+      "userId": "user-admin-01",
+      "role": "admin",
+      "createdAt": "2026-09-29T07:09:01.014Z",
+      "expiresAt": "2026-10-29T07:09:01.014Z"
+    },
+    {
+      "token": "token-e36ca2804236a9d5bcd53ac69321d8471c42aabde9091971ac4d69928d95b335",
+      "userId": "user-admin-01",
+      "role": "admin",
+      "createdAt": "2026-09-29T07:09:09.002Z",
+      "expiresAt": "2026-10-29T07:09:09.002Z"
+    },
+    {
+      "token": "token-040a3f3e800654c77cbfe6f75f1ebbcbea2bfb6a326e634204291423f0edf8b7",
+      "userId": "user-admin-01",
+      "role": "admin",
+      "createdAt": "2026-09-29T07:09:37.982Z",
+      "expiresAt": "2026-10-29T07:09:37.981Z"
+    },
+    {
+      "token": "token-ba33caf45d2f82a33568d74543dd7a01dfb59ab03b603086fb388a50d056a2d0",
+      "userId": "user-admin-01",
+      "role": "admin",
+      "createdAt": "2026-09-29T07:09:54.029Z",
+      "expiresAt": "2026-10-29T07:09:54.028Z"
+    }
+  ],
+  "products": [
+    {
+      "id": "prod-1790664762384-41viy",
+      "name": "Prism Studio OLED Display 32\"",
+      "slug": "prism-studio-oled-display-32",
+      "shortDescription": "Reference-grade 6K HDR studio monitor with hardware calibration.",
+      "description": "Designed for visual directors and digital artists, featuring true 10-bit color, 1600 nits peak brightness, and Thunderbolt 5 connectivity.",
+      "mainCategory": "physical",
+      "category": "Laptops",
+      "image": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80",
+      "logo": "",
+      "keyFeatures": [],
+      "priceStatus": "Hardware",
+      "price": "$2,499",
+      "officialWebsiteUrl": "https://prism.io/display",
+      "affiliateUrl": "https://store.prism.io/ref/display",
+      "affiliateCtaText": "Buy Now",
+      "affiliateDisclosure": "PRISM is reader-supported with outbound referral partnerships.",
+      "featured": false,
+      "status": "published",
+      "tags": [
+        "Display",
+        "Monitor",
+        "Studio",
+        "Hardware"
+      ],
+      "isPinned": false,
+      "isTrendingManual": false,
+      "makerName": "PRISM Verified",
+      "makerAvatar": "",
+      "makerVerified": true,
+      "createdAt": "2026-09-29T06:52:42.384Z",
+      "updatedAt": "2026-09-29T06:52:42.384Z"
+    },
+    {
+      "id": "prod-1790664747242-5g0o4",
+      "name": "Prism Neural Canvas",
+      "slug": "prism-neural-canvas",
+      "shortDescription": "Interactive multi-modal workspace for creative generation.",
+      "description": "Prism Neural Canvas provides intuitive visual graph pipelines for generative layout, text, and asset creation.",
+      "mainCategory": "digital",
+      "category": "AI tools",
+      "image": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80",
+      "logo": "",
+      "keyFeatures": [],
+      "priceStatus": "Freemium",
+      "price": "",
+      "officialWebsiteUrl": "https://prism.io/canvas",
+      "affiliateUrl": "https://partner.prism.io/ref/canvas",
+      "affiliateCtaText": "Try Now",
+      "affiliateDisclosure": "PRISM is reader-supported with outbound referral partnerships.",
+      "featured": false,
+      "status": "published",
+      "tags": [
+        "AI",
+        "Creative",
+        "Generative"
+      ],
+      "isPinned": false,
+      "isTrendingManual": false,
+      "makerName": "PRISM Verified",
+      "makerAvatar": "",
+      "makerVerified": true,
+      "createdAt": "2026-09-29T06:52:27.242Z",
+      "updatedAt": "2026-09-29T06:52:27.242Z"
+    }
+  ],
+  "comments": [],
+  "reports": [],
+  "referralClicks": [
+    {
+      "id": "ref-1790665794030-4re1",
+      "productId": "prod-1790664762384-41viy",
+      "productTitle": "Test Click",
+      "category": "AI tools",
+      "mainCategory": "digital",
+      "targetUrl": "https://example.com/ref",
+      "isAffiliate": true,
+      "referrer": "PRISM Discovery Web",
+      "timestamp": "2026-09-29T07:09:54.030Z",
+      "estimatedRevenue": 0.35
+    },
+    {
+      "id": "ref-1790665777982-wdv9",
+      "productId": "prod-1790664762384-41viy",
+      "productTitle": "Test Click",
+      "category": "AI tools",
+      "mainCategory": "digital",
+      "targetUrl": "https://example.com/ref",
+      "isAffiliate": true,
+      "referrer": "PRISM Discovery Web",
+      "timestamp": "2026-09-29T07:09:37.982Z",
+      "estimatedRevenue": 0.35
+    },
+    {
+      "id": "ref-1790665749003-k52p",
+      "productId": "prod-1790664762384-41viy",
+      "productTitle": "Test Click",
+      "category": "AI tools",
+      "mainCategory": "digital",
+      "targetUrl": "https://example.com/ref",
+      "isAffiliate": true,
+      "referrer": "PRISM Discovery Web",
+      "timestamp": "2026-09-29T07:09:09.004Z",
+      "estimatedRevenue": 0.35
+    },
+    {
+      "id": "ref-1790665741015-s34s",
+      "productId": "prod-1790664762384-41viy",
+      "productTitle": "Test Click",
+      "category": "AI tools",
+      "mainCategory": "digital",
+      "targetUrl": "https://example.com/ref",
+      "isAffiliate": true,
+      "referrer": "PRISM Discovery Web",
+      "timestamp": "2026-09-29T07:09:01.015Z",
+      "estimatedRevenue": 0.35
+    },
+    {
+      "id": "ref-1790664747270-zb7d",
+      "productId": "prod-1790664747242-5g0o4",
+      "productTitle": "Prism Neural Canvas",
+      "category": "AI tools",
+      "mainCategory": "digital",
+      "targetUrl": "https://partner.prism.io/ref/canvas",
+      "isAffiliate": true,
+      "referrer": "https://prism.io/community",
+      "timestamp": "2026-09-29T06:52:27.270Z",
+      "estimatedRevenue": 0.35
+    }
+  ],
+  "novels": [
+    {
+      "id": "novel-1790665794060-n0ky",
+      "title": "The Chrono Alchemist",
+      "slug": "the-chrono-alchemist",
+      "synopsis": "Mastering time transmutation.",
+      "coverImage": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80",
+      "author": "Elena Rostova",
+      "artist": "",
+      "genres": [
+        "Fantasy",
+        "Sci-Fi"
+      ],
+      "tags": [
+        "Time Travel",
+        "Alchemy"
+      ],
+      "status": "published",
+      "type": "novel",
+      "isOriginal": false,
+      "isFeatured": false,
+      "isTrending": false,
+      "releaseFrequency": "Weekly",
+      "submissionNotes": "Ready for editorial review",
+      "rejectionReason": "",
+      "creatorUserId": false,
+      "createdAt": "2026-09-29T07:09:54.060Z",
+      "updatedAt": "2026-09-29T07:09:54.060Z",
+      "submissionStatus": "approved"
+    },
+    {
+      "id": "novel-1790665777984-e9r3",
+      "title": "The Chrono Alchemist",
+      "slug": "the-chrono-alchemist",
+      "synopsis": "Mastering time transmutation.",
+      "coverImage": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80",
+      "author": "Elena Rostova",
+      "artist": "",
+      "genres": [
+        "Fantasy",
+        "Sci-Fi"
+      ],
+      "tags": [
+        "Time Travel",
+        "Alchemy"
+      ],
+      "status": "published",
+      "type": "novel",
+      "isOriginal": false,
+      "isFeatured": false,
+      "isTrending": false,
+      "releaseFrequency": "Weekly",
+      "submissionNotes": "Ready for editorial review",
+      "rejectionReason": "",
+      "creatorUserId": false,
+      "createdAt": "2026-09-29T07:09:37.984Z",
+      "updatedAt": "2026-09-29T07:09:37.984Z"
+    },
+    {
+      "id": "novel-1790664747289-lewd",
+      "title": "Echoes of the Silver Forest",
+      "slug": "echoes-of-the-silver-forest",
+      "synopsis": "A mystical journey into the forbidden whisper woods where spirits weave the threads of fate.",
+      "coverImage": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80",
+      "author": "Elena Rostova",
+      "artist": "",
+      "genres": [
+        "Fantasy",
+        "Mystery"
+      ],
+      "tags": [],
+      "status": "published",
+      "type": "novel",
+      "isOriginal": false,
+      "isFeatured": false,
+      "isTrending": false,
+      "releaseFrequency": "Weekly",
+      "submissionNotes": "",
+      "rejectionReason": "",
+      "creatorUserId": "usr-1790664747249-ldr3z",
+      "createdAt": "2026-09-29T06:52:27.289Z",
+      "updatedAt": "2026-09-29T06:52:27.294Z"
+    },
+    {
+      "id": "novel-1790664747276-3lvx",
+      "title": "Chronicles of the Astral Gate",
+      "slug": "chronicles-of-the-astral-gate",
+      "synopsis": "When celestial rifts shatter the skyline of Neo-Kyoto, a young glyph-carver discovers the ancient language of stellar entities.",
+      "coverImage": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80",
+      "author": "Kaelen Drake",
+      "artist": "",
+      "genres": [
+        "Fantasy",
+        "Sci-Fi"
+      ],
+      "tags": [
+        "Rifts",
+        "Magic",
+        "Futuristic"
+      ],
+      "status": "published",
+      "type": "novel",
+      "isOriginal": false,
+      "isFeatured": false,
+      "isTrending": false,
+      "releaseFrequency": "Weekly",
+      "submissionNotes": "",
+      "rejectionReason": "",
+      "creatorUserId": "user-admin-01",
+      "createdAt": "2026-09-29T06:52:27.276Z",
+      "updatedAt": "2026-09-29T06:52:27.281Z"
+    }
+  ],
+  "chapters": [
+    {
+      "id": "chap-1790664747281-570f",
+      "novelId": "novel-1790664747276-3lvx",
+      "chapterNumber": 1,
+      "title": "Chapter 1: The First Resonance",
+      "content": "The obsidian spires hummed with low frequency as violet fractures crept across the sky. Ren lifted his carving chisel...",
+      "publishDate": "2026-09-29",
+      "views": 0,
+      "likes": 0,
+      "commentsCount": 0,
+      "isFree": true,
+      "createdAt": "2026-09-29T06:52:27.281Z"
+    }
+  ],
+  "novelComments": [],
+  "readingProgress": [],
+  "engagements": [
+    {
+      "id": "eng-1790664747254-kuwf",
+      "userId": "usr-1790664747249-ldr3z",
+      "targetType": "product",
+      "targetId": "prod-1790664747242-5g0o4",
+      "action": "like",
+      "createdAt": "2026-09-29T06:52:27.254Z"
+    },
+    {
+      "id": "eng-1790664747258-9df6",
+      "userId": "usr-1790664747249-ldr3z",
+      "targetType": "product",
+      "targetId": "prod-1790664747242-5g0o4",
+      "action": "save",
+      "createdAt": "2026-09-29T06:52:27.258Z"
+    }
+  ],
+  "activityEvents": [
+    {
+      "id": "act-1790664747254-ur36",
+      "targetType": "product",
+      "targetId": "prod-1790664747242-5g0o4",
+      "eventType": "like",
+      "userId": "usr-1790664747249-ldr3z",
+      "timestamp": 1790664747254
+    },
+    {
+      "id": "act-1790664747258-va2p",
+      "targetType": "product",
+      "targetId": "prod-1790664747242-5g0o4",
+      "eventType": "save",
+      "userId": "usr-1790664747249-ldr3z",
+      "timestamp": 1790664747258
+    },
+    {
+      "id": "act-1790664747265-wqed",
+      "targetType": "product",
+      "targetId": "prod-1790664747242-5g0o4",
+      "eventType": "comment",
+      "userId": "usr-1790664747249-ldr3z",
+      "timestamp": 1790664747265
+    }
+  ]
+}

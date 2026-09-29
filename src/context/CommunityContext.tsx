@@ -15,6 +15,7 @@ import {
   CommunityReportItem
 } from '../types/community';
 import { calculateProductStats, sortCommunityProducts } from '../utils/communityRanking';
+import { apiClient } from '../services/apiClient';
 
 interface CommunityContextType {
   // Products
@@ -34,7 +35,7 @@ interface CommunityContextType {
   toggleProductTrending: (id: string) => void;
   toggleProductFeatured: (id: string) => void;
   setProductStatus: (id: string, status: CommunityProductStatus) => void;
-  recordProductClick: (id: string) => void;
+  recordProductClick: (id: string, isAffiliate?: boolean, targetUrl?: string) => void;
   recordProductShare: (id: string) => void;
   recordProductView: (id: string) => void;
 
@@ -66,6 +67,7 @@ interface CommunityContextType {
     content: string;
     honeypot?: string;
   }) => { success: boolean; error?: string };
+  updateComment: (commentId: string, updates: { content: string; title?: string; rating?: number }) => Promise<{ success: boolean; error?: string }>;
   reportComment: (commentId: string, reason: ReportReason) => { success: boolean; message: string };
   hideComment: (commentId: string) => void;
   unhideComment: (commentId: string) => void;
@@ -265,6 +267,32 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, [users]);
 
+  // Sync initial data from real database backend
+  useEffect(() => {
+    let isMounted = true;
+    apiClient.fetchProducts({ admin: true }).then(res => {
+      if (isMounted && res && Array.isArray(res.products)) {
+        setProducts(res.products);
+      }
+    }).catch(err => {
+      console.warn('Could not load products from backend:', err);
+    });
+
+    apiClient.fetchReports().then(res => {
+      if (isMounted && res && Array.isArray(res.reports)) {
+        setReports(res.reports);
+      }
+    }).catch(() => {});
+
+    apiClient.listUsers().then(res => {
+      if (isMounted && res && Array.isArray(res.users)) {
+        setUsers(res.users);
+      }
+    }).catch(() => {});
+
+    return () => { isMounted = false; };
+  }, []);
+
   // Product Admin Actions
   const addProduct = useCallback((productData: Partial<CommunityProduct>): CommunityProduct => {
     const newId = `prod-${Date.now()}`;
@@ -296,55 +324,103 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       isTrendingManual: productData.isTrendingManual,
       sharesCount: productData.sharesCount || 0,
       referralClicks: productData.referralClicks || 0,
-      viewsCount: productData.viewsCount || 10
+      viewsCount: productData.viewsCount || 0
     };
 
     setProducts(prev => [newProduct, ...prev]);
+
+    // Persist to real database
+    apiClient.createProduct(productData).then(res => {
+      if (res && res.product) {
+        setProducts(prev => [res.product, ...prev.filter(p => p.id !== newId && p.id !== res.product.id)]);
+      }
+    }).catch(err => {
+      console.error('Failed to create product in real database:', err);
+    });
+
     return newProduct;
   }, []);
 
   const updateProduct = useCallback((id: string, updates: Partial<CommunityProduct>) => {
     setProducts(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
+    apiClient.updateProduct(id, updates).catch(err => {
+      console.error('Failed to update product in database:', err);
+    });
   }, []);
 
   const deleteProduct = useCallback((id: string) => {
     setProducts(prev => prev.filter(p => p.id !== id));
+    apiClient.deleteProduct(id).catch(err => {
+      console.error('Failed to delete product in database:', err);
+    });
   }, []);
 
   const toggleProductPin = useCallback((id: string) => {
-    setProducts(prev => prev.map(p => p.id === id ? { ...p, isPinned: !p.isPinned } : p));
+    setProducts(prev => {
+      const target = prev.find(p => p.id === id);
+      const nextPin = !target?.isPinned;
+      apiClient.updateProduct(id, { isPinned: nextPin }).catch(() => {});
+      return prev.map(p => p.id === id ? { ...p, isPinned: nextPin } : p);
+    });
   }, []);
 
   const toggleProductTrending = useCallback((id: string) => {
-    setProducts(prev => prev.map(p => p.id === id ? { 
-      ...p, 
-      isTrendingManual: p.isTrendingManual === undefined ? true : !p.isTrendingManual,
-      status: p.status === 'trending' ? 'published' : 'trending'
-    } : p));
+    setProducts(prev => {
+      const target = prev.find(p => p.id === id);
+      const nextTrending = target?.isTrendingManual === undefined ? true : !target.isTrendingManual;
+      const nextStatus = target?.status === 'trending' ? 'published' : 'trending';
+      apiClient.updateProduct(id, { isTrendingManual: nextTrending, status: nextStatus }).catch(() => {});
+      return prev.map(p => p.id === id ? { 
+        ...p, 
+        isTrendingManual: nextTrending,
+        status: nextStatus
+      } : p);
+    });
   }, []);
 
   const toggleProductFeatured = useCallback((id: string) => {
-    setProducts(prev => prev.map(p => p.id === id ? { 
-      ...p, 
-      featured: !p.featured,
-      status: !p.featured ? 'featured' : (p.status === 'featured' ? 'published' : p.status)
-    } : p));
+    setProducts(prev => {
+      const target = prev.find(p => p.id === id);
+      const nextFeatured = !target?.featured;
+      const nextStatus = nextFeatured ? 'featured' : (target?.status === 'featured' ? 'published' : target?.status);
+      apiClient.updateProduct(id, { featured: nextFeatured, status: nextStatus }).catch(() => {});
+      return prev.map(p => p.id === id ? { 
+        ...p, 
+        featured: nextFeatured,
+        status: nextStatus
+      } : p);
+    });
   }, []);
 
   const setProductStatus = useCallback((id: string, status: CommunityProductStatus) => {
     setProducts(prev => prev.map(p => p.id === id ? { ...p, status } : p));
+    apiClient.updateProduct(id, { status }).catch(() => {});
   }, []);
 
-  const recordProductClick = useCallback((id: string) => {
-    setProducts(prev => prev.map(p => p.id === id ? { ...p, referralClicks: (p.referralClicks || 0) + 1 } : p));
+  const recordProductClick = useCallback((id: string, isAffiliate = true, targetUrl?: string) => {
+    setProducts(prev => {
+      const prod = prev.find(p => p.id === id);
+      apiClient.recordReferralClick({
+        productId: id,
+        productTitle: prod?.name || 'Product',
+        category: prod?.category || 'General',
+        mainCategory: prod?.mainCategory || 'digital',
+        targetUrl: targetUrl || prod?.affiliateUrl || prod?.officialWebsiteUrl || 'https://prism.io',
+        isAffiliate,
+        referrer: document.referrer || window.location.href
+      }).catch(e => console.warn('Referral click tracking error:', e));
+      return prev.map(p => p.id === id ? { ...p, referralClicks: (p.referralClicks || 0) + 1 } : p);
+    });
   }, []);
 
   const recordProductShare = useCallback((id: string) => {
     setProducts(prev => prev.map(p => p.id === id ? { ...p, sharesCount: (p.sharesCount || 0) + 1 } : p));
+    apiClient.recordProductShare(id).catch(() => {});
   }, []);
 
   const recordProductView = useCallback((id: string) => {
     setProducts(prev => prev.map(p => p.id === id ? { ...p, viewsCount: (p.viewsCount || 0) + 1 } : p));
+    apiClient.recordProductView(id).catch(() => {});
   }, []);
 
   // Reports
@@ -362,27 +438,37 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       status: 'pending'
     };
     setReports(prev => [newReport, ...prev]);
+    apiClient.submitReport(report).then(res => {
+      if (res && res.report) {
+        setReports(prev => [res.report, ...prev.filter(r => r.id !== newReport.id && r.id !== res.report.id)]);
+      }
+    }).catch(e => console.warn('Report submit error:', e));
   }, []);
 
   const updateReportStatus = useCallback((id: string, status: 'pending' | 'reported' | 'approved' | 'rejected' | 'suspended', notes?: string) => {
     setReports(prev => prev.map(r => r.id === id ? { ...r, status, actionNotes: notes || r.actionNotes } : r));
+    apiClient.updateReport(id, status, notes).catch(e => console.warn('Report update error:', e));
   }, []);
 
   const deleteReport = useCallback((id: string) => {
     setReports(prev => prev.filter(r => r.id !== id));
+    apiClient.deleteReport(id).catch(e => console.warn('Report delete error:', e));
   }, []);
 
   // Users
   const updateUserStatus = useCallback((id: string, status: CommunityUserStatus) => {
     setUsers(prev => prev.map(u => u.id === id ? { ...u, status } : u));
+    apiClient.updateUserStatus(id, status).catch(e => console.warn('User status update error:', e));
   }, []);
 
   const updateUserRole = useCallback((id: string, role: CommunityUserRole) => {
     setUsers(prev => prev.map(u => u.id === id ? { ...u, role } : u));
+    apiClient.updateUserRole(id, role).catch(e => console.warn('User role update error:', e));
   }, []);
 
   const deleteUser = useCallback((id: string) => {
     setUsers(prev => prev.filter(u => u.id !== id));
+    apiClient.deleteUser(id).catch(e => console.warn('User delete error:', e));
   }, []);
 
   // Navigation & Filtering State
@@ -539,6 +625,15 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         return [...prev, productId];
       }
     });
+
+    apiClient.toggleLikeProduct(productId).then(res => {
+      if (res && typeof res.totalLikes === 'number') {
+        setProducts(prev => prev.map(p => p.id === productId ? { ...p, initialLikes: res.totalLikes } : p));
+      }
+    }).catch(e => {
+      console.warn('Backend like sync error:', e);
+    });
+
     return nowLiked;
   }, []);
 
@@ -553,6 +648,15 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         return [...prev, productId];
       }
     });
+
+    apiClient.toggleSaveProduct(productId).then(res => {
+      if (res && typeof res.totalSaves === 'number') {
+        setProducts(prev => prev.map(p => p.id === productId ? { ...p, initialSaves: res.totalSaves } : p));
+      }
+    }).catch(e => {
+      console.warn('Backend save sync error:', e);
+    });
+
     return nowSaved;
   }, []);
 
@@ -624,6 +728,19 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setComments((prev) => [newComment, ...prev]);
       setLastCommentTimestamp(now);
 
+      // Persist to real backend
+      apiClient.addProductComment(data.productId, {
+        rating: data.rating,
+        title: data.title,
+        content: cleanContent
+      }).then(res => {
+        if (res && res.comment) {
+          setComments(prev => [res.comment, ...prev.filter(c => c.id !== newComment.id && c.id !== res.comment.id)]);
+        }
+      }).catch(err => {
+        console.warn('Backend comment error:', err);
+      });
+
       // Boost recent activity score on product
       setProducts((prev) =>
         prev.map((p) =>
@@ -636,6 +753,23 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       return { success: true };
     },
     [lastCommentTimestamp]
+  );
+
+  const updateComment = useCallback(
+    async (commentId: string, updates: { content: string; title?: string; rating?: number }) => {
+      setComments(prev => prev.map(c => c.id === commentId ? { ...c, ...updates, updatedAt: new Date().toISOString() } : c));
+      try {
+        const res = await apiClient.updateProductComment(commentId, updates);
+        if (res && res.comment) {
+          setComments(prev => prev.map(c => c.id === commentId ? { ...c, ...res.comment } : c));
+        }
+        return { success: true };
+      } catch (err: any) {
+        console.warn('Backend comment update warning:', err);
+        return { success: true };
+      }
+    },
+    []
   );
 
   const reportComment = useCallback(
@@ -651,7 +785,6 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           if (c.id !== commentId) return c;
           const nextCount = c.reportedCount + 1;
           const updatedReasons = [...(c.reportReasons || []), reason];
-          // If reported 2+ times, flag for review
           const nextStatus = nextCount >= 2 ? 'flagged' : 'under_review';
           return {
             ...c,
@@ -661,6 +794,13 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           };
         })
       );
+
+      apiClient.submitReport({
+        targetType: 'comment',
+        targetId: commentId,
+        reason,
+        content: `Reported for: ${reason}`
+      }).catch(() => {});
 
       return {
         success: true,
@@ -686,6 +826,9 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const deleteComment = useCallback((commentId: string) => {
     setComments((prev) => prev.filter((c) => c.id !== commentId));
+    apiClient.deleteProductComment(commentId).catch(err => {
+      console.warn('Backend comment delete warning:', err);
+    });
   }, []);
 
   const approveComment = useCallback((commentId: string) => {
@@ -696,6 +839,7 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           : c
       )
     );
+    apiClient.moderateProductComment(commentId, 'approve').catch(() => {});
   }, []);
 
   const markCommentHelpful = useCallback(
@@ -711,6 +855,7 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setComments((prev) =>
           prev.map((c) => (c.id === commentId ? { ...c, helpfulCount: c.helpfulCount + 1 } : c))
         );
+        apiClient.voteCommentHelpful(commentId).catch(() => {});
         return { success: true, message: 'Marked as helpful!' };
       }
     },
@@ -869,6 +1014,7 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         comments,
         getProductComments,
         addComment,
+        updateComment,
         reportComment,
         hideComment,
         unhideComment,

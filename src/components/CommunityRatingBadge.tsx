@@ -71,13 +71,13 @@ export const CommunityRatingBadge: React.FC<CommunityRatingBadgeProps> = ({
         </div>
 
         {/* Real community rating score: Only displayed when real community ratings exist! */}
-        {averageRating !== null && ratingCount > 0 ? (
+        {typeof averageRating === 'number' && !isNaN(averageRating) && ratingCount > 0 ? (
           <div className="flex items-center gap-1.5 font-mono">
             <span className="font-bold text-white text-xs sm:text-sm">
-              ⭐ {averageRating.toFixed(1)}/5
+              ⭐ {(averageRating ?? 0).toFixed(1)}/5
             </span>
             <span className="text-zinc-400 text-[11px]">
-              ({ratingCount.toLocaleString()} {ratingCount === 1 ? 'rating' : 'ratings'})
+              ({(ratingCount || 0).toLocaleString()} {ratingCount === 1 ? 'rating' : 'ratings'})
             </span>
           </div>
         ) : (

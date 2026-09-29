@@ -281,31 +281,11 @@ export const CommunityFeedPage: React.FC = () => {
       {/* Products Grid */}
       {filteredProducts.length === 0 ? (
         <EmptyState
-          icon={
-            hasActiveFilters
-              ? SlidersHorizontal
-              : mainCategory === 'digital'
-              ? Cpu
-              : mainCategory === 'physical'
-              ? Laptop
-              : Package
-          }
-          title={
-            hasActiveFilters
-              ? 'No products match your filters'
-              : mainCategory === 'digital'
-              ? 'No digital products available yet'
-              : mainCategory === 'physical'
-              ? 'No physical products available yet'
-              : 'No products available yet'
-          }
+          icon={hasActiveFilters ? SlidersHorizontal : Package}
+          title={hasActiveFilters ? 'No products match your filters' : 'No products available yet'}
           description={
             hasActiveFilters
               ? 'Try clearing the search query or selecting a different category.'
-              : mainCategory === 'digital'
-              ? 'AI tools, developer utilities, and web apps will appear here once added.'
-              : mainCategory === 'physical'
-              ? 'Hardware architectures, setups, and gear will appear here once added.'
               : 'Curated software, tools, and hardware products will appear here once published.'
           }
           actionLabel={hasActiveFilters ? 'Clear all filters' : undefined}
