@@ -27,6 +27,34 @@
       "joinedDate": "2026-09-29",
       "contributionsCount": 0,
       "warningsCount": 0
+    },
+    {
+      "id": "usr-1790785966878-ei5mc",
+      "name": "Alex",
+      "email": "alex@example.com",
+      "passwordHash": "3682dfb8ee17a75eae984cf148a993b3eec5fda40b919f036134bf3aaf0a42be5ca4cb993a84d05988577ae54fae6f6899fa8cc76982bad019b530194f59b7cc",
+      "passwordSalt": "398f91535ff7df0ebb794bd96dfe4485",
+      "avatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Alex",
+      "role": "member",
+      "status": "active",
+      "bio": "",
+      "joinedDate": "2026-09-30",
+      "contributionsCount": 0,
+      "warningsCount": 0
+    },
+    {
+      "id": "usr-1790788395107-02i1t",
+      "name": "Ayan Studio",
+      "email": "ayan-1790788395103@gmail.com",
+      "passwordHash": "0d5d49540f5d6f4e4e1900d6c8cdcb004476c5abe54861b3c8fd22b774c95fc3bd54bb0a3c58e7eb9f18cacec34175dca37c53fa6924c8b5233b3c6396cf1bac",
+      "passwordSalt": "717a5776374582acb7b34b0282ba3e6e",
+      "avatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Ayan%20Studio",
+      "role": "member",
+      "status": "active",
+      "bio": "",
+      "joinedDate": "2026-09-30",
+      "contributionsCount": 0,
+      "warningsCount": 0
     }
   ],
   "sessions": [
@@ -99,6 +127,62 @@
       "role": "admin",
       "createdAt": "2026-09-29T07:09:54.029Z",
       "expiresAt": "2026-10-29T07:09:54.028Z"
+    },
+    {
+      "token": "token-b48d341fbd68f5d7f7714ff1e01829d174724d9c296a860501f59abb76b68a17",
+      "userId": "user-admin-01",
+      "role": "admin",
+      "createdAt": "2026-09-30T16:30:09.990Z",
+      "expiresAt": "2026-10-30T16:30:09.990Z"
+    },
+    {
+      "token": "token-1cec86ace752847fed258e916f48425680fd9a7eedbdc200ead528682cd9f452",
+      "userId": "user-admin-01",
+      "role": "admin",
+      "createdAt": "2026-09-30T16:32:44.619Z",
+      "expiresAt": "2026-10-30T16:32:44.619Z"
+    },
+    {
+      "token": "token-d984c9e33e1463cb6371c5dfe3faa35e91b397ea2105a811be5e6bc1b0c29403",
+      "userId": "usr-1790785966878-ei5mc",
+      "role": "member",
+      "createdAt": "2026-09-30T16:32:46.878Z",
+      "expiresAt": "2026-10-30T16:32:46.878Z"
+    },
+    {
+      "token": "token-f7e88fa1c6915f3cd8a15f24fba1df9a64e194e8eb4a503ff33e4075b570a038",
+      "userId": "user-admin-01",
+      "role": "admin",
+      "createdAt": "2026-09-30T16:41:21.317Z",
+      "expiresAt": "2026-10-30T16:41:21.317Z"
+    },
+    {
+      "token": "token-75e9b20d93f204a718648c97a3ce6c4282a2a3511b80ff09407b194060e79c5b",
+      "userId": "user-admin-01",
+      "role": "admin",
+      "createdAt": "2026-09-30T17:08:54.650Z",
+      "expiresAt": "2026-10-30T17:08:54.650Z"
+    },
+    {
+      "token": "token-c74508e7a5458e0c7ab84f48b3d1535833ea8a5b6f393e3ddefb61253f37bc6c",
+      "userId": "user-admin-01",
+      "role": "admin",
+      "createdAt": "2026-09-30T17:12:59.397Z",
+      "expiresAt": "2026-10-30T17:12:59.397Z"
+    },
+    {
+      "token": "token-a0fbacfb414859adcc086b15a49c4b10860625fb82682296b439f6e00fab681f",
+      "userId": "usr-1790788395107-02i1t",
+      "role": "member",
+      "createdAt": "2026-09-30T17:13:15.107Z",
+      "expiresAt": "2026-10-30T17:13:15.107Z"
+    },
+    {
+      "token": "token-4817f62acc18873dbf3cb763177db1061c5abf74c8a0700c9d170ae07bf79a88",
+      "userId": "user-admin-01",
+      "role": "admin",
+      "createdAt": "2026-09-30T17:13:15.132Z",
+      "expiresAt": "2026-10-30T17:13:15.132Z"
     }
   ],
   "products": [
@@ -404,6 +488,20 @@
       "eventType": "comment",
       "userId": "usr-1790664747249-ldr3z",
       "timestamp": 1790664747265
+    },
+    {
+      "id": "act-1790785875879-yv7v",
+      "targetType": "product",
+      "targetId": "test",
+      "eventType": "view",
+      "timestamp": 1790785875879
+    },
+    {
+      "id": "act-1790785875883-zqls",
+      "targetType": "product",
+      "targetId": "test",
+      "eventType": "share",
+      "timestamp": 1790785875883
     }
   ]
 }

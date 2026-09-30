@@ -18,15 +18,16 @@ export function calculateProductStats(
     (c) => c.productId === product.id && c.status === 'published' && !c.isUserHidden
   );
 
-  const ratedComments = publishedComments.filter((c) => typeof c.rating === 'number' && c.rating > 0);
+  const ratedComments = publishedComments.filter((c) => typeof c.rating === 'number' && !isNaN(c.rating) && c.rating > 0);
   const ratingCount = ratedComments.length;
-  const averageRating =
+  const rawAvg =
     ratingCount > 0
-      ? Number((ratedComments.reduce((acc, c) => acc + (c.rating || 0), 0) / ratingCount).toFixed(1))
+      ? ratedComments.reduce((acc, c) => acc + (c.rating || 0), 0) / ratingCount
       : null;
+  const averageRating = rawAvg !== null && !isNaN(rawAvg) ? Number(rawAvg.toFixed(1)) : null;
 
-  const totalLikes = product.initialLikes + (isLiked ? 1 : 0);
-  const totalSaves = product.initialSaves + (isSaved ? 1 : 0);
+  const totalLikes = (product.initialLikes || 0) + (isLiked ? 1 : 0);
+  const totalSaves = (product.initialSaves || 0) + (isSaved ? 1 : 0);
   const commentCount = publishedComments.length;
 
   // Calculate Engagement Quality Score (0 to 100)
@@ -49,25 +50,26 @@ export function calculateProductStats(
   const engagementQualityScore = Math.max(0, Math.min(100, qualityPoints));
 
   // Recent Activity Factor (decay from creation date + recent interactions)
-  const createdDate = new Date(product.createdAt).getTime();
+  const createdDate = product.createdAt ? new Date(product.createdAt).getTime() : Date.now();
   const now = Date.now();
-  const ageInDays = Math.max(0, (now - createdDate) / (1000 * 60 * 60 * 24));
+  const ageInDays = isNaN(createdDate) ? 0 : Math.max(0, (now - createdDate) / (1000 * 60 * 60 * 24));
   
   // Exponential recency multiplier
   const recencyMultiplier = Math.max(0.4, 1 - ageInDays * 0.02);
-  const adjustedRecentActivity = Math.round(product.recentActivityScore * recencyMultiplier);
+  const adjustedRecentActivity = Math.round((product.recentActivityScore || 0) * recencyMultiplier);
 
   // Trending Velocity Score
   // Weights: Recent Velocity (40%) + Saves (25%) + Comments (20%) + Likes (15%) + Quality (15%)
-  const trendingScore = Number(
+  const rawTrendingScore = Number(
     (
-      adjustedRecentActivity * 0.40 +
-      Math.min(100, totalSaves * 0.8) * 0.25 +
-      Math.min(100, commentCount * 12) * 0.20 +
-      Math.min(100, totalLikes * 0.4) * 0.15 +
-      engagementQualityScore * 0.15
+      (adjustedRecentActivity || 0) * 0.40 +
+      Math.min(100, (totalSaves || 0) * 0.8) * 0.25 +
+      Math.min(100, (commentCount || 0) * 12) * 0.20 +
+      Math.min(100, (totalLikes || 0) * 0.4) * 0.15 +
+      (engagementQualityScore || 0) * 0.15
     ).toFixed(1)
   );
+  const trendingScore = isNaN(rawTrendingScore) ? 0 : rawTrendingScore;
 
   // Threshold: products with high recent engagement are flagged as trending
   const isTrending = trendingScore >= 68 || (product.featured && trendingScore >= 60);

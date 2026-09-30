@@ -315,7 +315,7 @@ export const AdminCommunityRanking: React.FC = () => {
                           : 'bg-zinc-900 text-zinc-400 border border-zinc-800'
                       }`}
                     >
-                      {trendingScore}
+                      {typeof trendingScore === 'number' && !isNaN(trendingScore) ? trendingScore : 0}
                     </span>
                   </td>
 

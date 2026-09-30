@@ -120,11 +120,11 @@ export const DiscoveryCard: React.FC<DiscoveryCardProps> = ({ item, layoutVarian
               fallbackTitle={item.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
-            {rankBadge && (
+            {typeof rankBadge === 'number' && !isNaN(rankBadge) && rankBadge > 0 ? (
               <span className="absolute top-1 left-1 flex items-center justify-center w-5 h-5 rounded bg-amber-400 text-zinc-950 font-black text-[10px]">
                 #{rankBadge}
               </span>
-            )}
+            ) : null}
           </div>
 
           <div className="min-w-0 flex-1">
@@ -200,11 +200,11 @@ export const DiscoveryCard: React.FC<DiscoveryCardProps> = ({ item, layoutVarian
           <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent md:hidden pointer-events-none" />
           
           <div className="absolute top-3 left-3 flex items-center gap-1.5">
-            {rankBadge && (
+            {typeof rankBadge === 'number' && !isNaN(rankBadge) && rankBadge > 0 ? (
               <span className="flex items-center justify-center w-6 h-6 rounded bg-amber-400 text-zinc-950 font-black text-xs shadow-md">
                 #{rankBadge}
               </span>
-            )}
+            ) : null}
             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold backdrop-blur-md border ${catStyle.bg} ${catStyle.border} ${catStyle.text}`}>
               <span className={`w-1.5 h-1.5 rounded-full ${catStyle.dot}`} />
               {item.category}
@@ -216,12 +216,12 @@ export const DiscoveryCard: React.FC<DiscoveryCardProps> = ({ item, layoutVarian
               <Flame className="w-3 h-3 text-amber-400" />
               {item.heatScore}° Heat
             </div>
-            {communityStats.averageRating !== null && (
+            {typeof communityStats.averageRating === 'number' && !isNaN(communityStats.averageRating) && communityStats.ratingCount > 0 ? (
               <div className="bg-zinc-950/80 backdrop-blur-md px-2 py-1 rounded-md border border-zinc-800 text-[11px] font-mono text-amber-300 flex items-center gap-1">
                 <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                <span>{communityStats.averageRating}★</span>
+                <span>{communityStats.averageRating.toFixed(1)}★</span>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
 
@@ -366,11 +366,11 @@ export const DiscoveryCard: React.FC<DiscoveryCardProps> = ({ item, layoutVarian
         {/* Top Badges */}
         <div className="absolute top-3 inset-x-3 flex items-center justify-between gap-2 pointer-events-none">
           <div className="flex items-center gap-1.5">
-            {rankBadge && (
+            {typeof rankBadge === 'number' && !isNaN(rankBadge) && rankBadge > 0 ? (
               <span className="flex items-center justify-center w-6 h-6 rounded-md bg-amber-400 text-zinc-950 font-black text-xs shadow-md">
                 #{rankBadge}
               </span>
-            )}
+            ) : null}
             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold backdrop-blur-md border pointer-events-auto ${catStyle.bg} ${catStyle.border} ${catStyle.text}`}>
               <span className={`w-1.5 h-1.5 rounded-full ${catStyle.dot}`} />
               {item.category}
@@ -387,17 +387,17 @@ export const DiscoveryCard: React.FC<DiscoveryCardProps> = ({ item, layoutVarian
         <div className="absolute bottom-3 left-3 flex items-center gap-1.5">
           <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-zinc-950/80 backdrop-blur-md border border-zinc-800 text-[10px] font-mono text-amber-400">
             <Flame className="w-3 h-3" />
-            <span>{item.heatScore}°</span>
+            <span>{typeof item.heatScore === 'number' && !isNaN(item.heatScore) ? item.heatScore : 0}°</span>
           </div>
 
           {/* Real community rating score (only when real ratings exist!) */}
-          {communityStats.averageRating !== null && communityStats.ratingCount > 0 && (
+          {typeof communityStats.averageRating === 'number' && !isNaN(communityStats.averageRating) && communityStats.ratingCount > 0 ? (
             <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-zinc-950/80 backdrop-blur-md border border-zinc-800 text-[10px] font-mono text-amber-300">
               <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-              <span>{communityStats.averageRating}★</span>
+              <span>{communityStats.averageRating.toFixed(1)}★</span>
               <span className="text-zinc-500">({communityStats.ratingCount})</span>
             </div>
-          )}
+          ) : null}
         </div>
 
         {/* Action Controls */}

@@ -74,9 +74,9 @@ export const AdminDashboard: React.FC = () => {
   const novelReadsCount = novels.reduce((sum, n) => sum + (n.views || 0), 0);
   // 10. Community engagement
   const communityEngagementCount =
-    products.reduce((sum, p) => sum + p.initialLikes + p.initialSaves + (p.sharesCount || 0), 0) +
+    products.reduce((sum, p) => sum + (p.initialLikes || 0) + (p.initialSaves || 0) + (p.sharesCount || 0), 0) +
     reviews.length +
-    novels.reduce((sum, n) => sum + n.likes + n.saves + (n.commentsCount || 0), 0);
+    novels.reduce((sum, n) => sum + (n.likes || 0) + (n.saves || 0) + (n.commentsCount || 0), 0);
 
   // Additional CMS counts
   const publishedCount = (items || []).filter((i) => i && i.status === 'published').length;

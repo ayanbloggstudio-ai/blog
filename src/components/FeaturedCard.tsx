@@ -48,11 +48,11 @@ export const FeaturedCard: React.FC<FeaturedCardProps> = ({ item, rankBadge }) =
 
           {/* Floating Badges */}
           <div className="absolute top-4 left-4 flex items-center gap-2">
-            {rankBadge && (
+            {typeof rankBadge === 'number' && !isNaN(rankBadge) && rankBadge > 0 ? (
               <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-amber-400 text-zinc-950 font-black text-sm shadow-lg">
                 #{rankBadge}
               </span>
-            )}
+            ) : null}
             <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500 text-zinc-950 shadow-md">
               {item.category}
             </span>
@@ -66,7 +66,7 @@ export const FeaturedCard: React.FC<FeaturedCardProps> = ({ item, rankBadge }) =
           <div className="absolute bottom-4 left-4 flex items-center gap-2">
             <span className="px-2.5 py-1 rounded-md bg-zinc-950/80 backdrop-blur-md border border-zinc-800 text-xs font-mono text-amber-400 flex items-center gap-1.5">
               <Flame className="w-3.5 h-3.5" />
-              {item.heatScore}° Heat Score
+              {typeof item.heatScore === 'number' && !isNaN(item.heatScore) ? item.heatScore : 0}° Heat Score
             </span>
             <span className="px-2.5 py-1 rounded-md bg-emerald-950/80 backdrop-blur-md border border-emerald-800/60 text-xs font-medium text-emerald-300 flex items-center gap-1">
               <Zap className="w-3 h-3" />

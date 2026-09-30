@@ -98,12 +98,12 @@ export const NovelCard: React.FC<NovelCardProps> = ({ novel, featured = false })
             {novel.type}
           </span>
 
-          {(novel.trendingScore && novel.trendingScore > 4000) && (
+          {(typeof novel.trendingScore === 'number' && !isNaN(novel.trendingScore) && novel.trendingScore > 4000) ? (
             <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 backdrop-blur-md">
               <Flame className="w-3 h-3 text-amber-400" />
               Trending
             </span>
-          )}
+          ) : null}
         </div>
 
         {/* Save Bookmark Icon */}
@@ -209,7 +209,7 @@ export const NovelCard: React.FC<NovelCardProps> = ({ novel, featured = false })
               title="Like novel"
             >
               <Heart className={`w-3.5 h-3.5 ${isLiked ? 'fill-current' : ''}`} />
-              <span>{novel.likes}</span>
+              <span>{typeof novel.likes === 'number' && !isNaN(novel.likes) ? novel.likes : 0}</span>
             </button>
           </div>
 

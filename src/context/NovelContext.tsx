@@ -360,7 +360,8 @@ export const NovelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       // update novel save count
       setNovels(all => all.map(n => {
         if (n.id === novelId) {
-          return { ...n, saves: Math.max(0, n.saves + (exists ? -1 : 1)) };
+          const currentSaves = typeof n.saves === 'number' && !isNaN(n.saves) ? n.saves : 0;
+          return { ...n, saves: Math.max(0, currentSaves + (exists ? -1 : 1)) };
         }
         return n;
       }));
@@ -385,7 +386,8 @@ export const NovelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const next = exists ? prev.filter(id => id !== novelId) : [...prev, novelId];
       setNovels(all => all.map(n => {
         if (n.id === novelId) {
-          return { ...n, followers: Math.max(0, n.followers + (exists ? -1 : 1)) };
+          const currentFollowers = typeof n.followers === 'number' && !isNaN(n.followers) ? n.followers : 0;
+          return { ...n, followers: Math.max(0, currentFollowers + (exists ? -1 : 1)) };
         }
         return n;
       }));
@@ -404,7 +406,8 @@ export const NovelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const next = exists ? prev.filter(id => id !== novelId) : [...prev, novelId];
       setNovels(all => all.map(n => {
         if (n.id === novelId) {
-          return { ...n, likes: Math.max(0, n.likes + (exists ? -1 : 1)) };
+          const currentLikes = typeof n.likes === 'number' && !isNaN(n.likes) ? n.likes : 0;
+          return { ...n, likes: Math.max(0, currentLikes + (exists ? -1 : 1)) };
         }
         return n;
       }));

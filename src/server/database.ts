@@ -330,8 +330,9 @@ export function createUser(payload: {
   const { hash, salt } = hashPassword(payload.password);
   const userId = `usr-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
   
-  // Assign role: if email is admin@prism.io, always give admin
-  const assignedRole = payload.role || (normalizedEmail === 'admin@prism.io' ? 'admin' : 'member');
+  // Assign role: standard signups always receive 'member' role.
+  // Administrative privileges must be explicitly provisioned or managed by existing administrators.
+  const assignedRole = payload.role || 'member';
 
   const newUser: DBUser = {
     id: userId,
@@ -1352,7 +1353,8 @@ export function calculateRealTrendingScores() {
   const novelScores = new Map<string, number>();
 
   db.activityEvents.forEach(event => {
-    const age = Math.max(0, now - event.timestamp);
+    const ts = typeof event.timestamp === 'number' ? event.timestamp : new Date(event.timestamp).getTime();
+    const age = isNaN(ts) ? 0 : Math.max(0, now - ts);
     if (age > 14 * 24 * 60 * 60 * 1000) return; // ignore older than 14 days
 
     const recencyWeight = Math.exp(-lambda * age);

@@ -282,9 +282,39 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [aiStudioPrefill, setAiStudioPrefill] = useState<AIStudioPrefillData | null>(null);
 
   // UI state
-  const [isAdminViewOpen, setIsAdminViewOpen] = useState(false);
+  const [isAdminViewOpen, setIsAdminViewOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname;
+      return path === '/admin' || path.startsWith('/admin/');
+    }
+    return false;
+  });
   const [adminActiveTab, setAdminActiveTab] = useState<AdminTab>('dashboard');
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
+
+  // Sync URL pathname with admin view state
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const isPathAdmin = window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin/');
+      if (isAdminViewOpen && !isPathAdmin) {
+        window.history.pushState(null, '', '/admin');
+      } else if (!isAdminViewOpen && isPathAdmin) {
+        window.history.pushState(null, '', '/');
+      }
+    }
+  }, [isAdminViewOpen]);
+
+  // Listen to browser back/forward buttons
+  useEffect(() => {
+    const handlePopState = () => {
+      if (typeof window !== 'undefined') {
+        const isPathAdmin = window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin/');
+        setIsAdminViewOpen(isPathAdmin);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   // Set all CMS data from Supabase Pull or restore
   const setAllCMSData = (data: {

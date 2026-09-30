@@ -330,7 +330,7 @@ export const NovelDetailPage: React.FC<NovelDetailPageProps> = ({ novel }) => {
                 }`}
               >
                 <Heart className={`w-4 h-4 ${isLiked ? 'fill-current text-rose-500' : ''}`} />
-                <span>{novel.likes}</span>
+                <span>{typeof novel.likes === 'number' && !isNaN(novel.likes) ? novel.likes : 0}</span>
               </button>
 
               {/* Bookmark Save Button */}
@@ -460,9 +460,9 @@ export const NovelDetailPage: React.FC<NovelDetailPageProps> = ({ novel }) => {
                           <Clock className="w-3 h-3" />
                           {new Date(chapter.publishedAt).toLocaleDateString()}
                         </span>
-                        {chapter.wordCount && (
+                        {typeof chapter.wordCount === 'number' && !isNaN(chapter.wordCount) && chapter.wordCount > 0 ? (
                           <span>{chapter.wordCount.toLocaleString()} words</span>
-                        )}
+                        ) : null}
                       </div>
                     </div>
                   </div>
@@ -552,11 +552,11 @@ export const NovelDetailPage: React.FC<NovelDetailPageProps> = ({ novel }) => {
                         {comment.authorName[0]?.toUpperCase() || 'R'}
                       </div>
                       <span className="font-bold text-xs text-zinc-200">{comment.authorName}</span>
-                      {comment.chapterNumber && (
+                      {typeof comment.chapterNumber === 'number' && !isNaN(comment.chapterNumber) && comment.chapterNumber > 0 ? (
                         <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-950/60 text-indigo-300 border border-indigo-800/40">
                           Ch. {comment.chapterNumber}
                         </span>
-                      )}
+                      ) : null}
                       <span className="text-[11px] text-zinc-500">
                         {new Date(comment.createdAt).toLocaleDateString()}
                       </span>

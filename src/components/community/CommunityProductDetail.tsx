@@ -240,21 +240,21 @@ export const CommunityProductDetail: React.FC<CommunityProductDetailProps> = ({
           {/* Social Proof Stats Bar */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-[#0e121c] border border-zinc-800 text-center">
             <div className="p-2">
-              <div className="text-xl font-black text-white">{stats.likes}</div>
+              <div className="text-xl font-black text-white">{typeof stats.likes === 'number' && !isNaN(stats.likes) ? stats.likes : 0}</div>
               <div className="text-[11px] text-zinc-400 uppercase tracking-wider font-semibold">Community Likes</div>
             </div>
             <div className="p-2">
-              <div className="text-xl font-black text-white">{stats.saves}</div>
+              <div className="text-xl font-black text-white">{typeof stats.saves === 'number' && !isNaN(stats.saves) ? stats.saves : 0}</div>
               <div className="text-[11px] text-zinc-400 uppercase tracking-wider font-semibold">Saved Items</div>
             </div>
             <div className="p-2">
-              <div className="text-xl font-black text-white">{stats.commentCount}</div>
+              <div className="text-xl font-black text-white">{typeof stats.commentCount === 'number' && !isNaN(stats.commentCount) ? stats.commentCount : 0}</div>
               <div className="text-[11px] text-zinc-400 uppercase tracking-wider font-semibold">Discussions</div>
             </div>
             <div className="p-2">
               <div className="text-xl font-black text-amber-400 flex items-center justify-center gap-1">
                 <Star className="w-4 h-4 fill-amber-400" />
-                <span>{stats.averageRating !== null ? stats.averageRating : '—'}</span>
+                <span>{typeof stats.averageRating === 'number' && !isNaN(stats.averageRating) ? stats.averageRating.toFixed(1) : '—'}</span>
               </div>
               <div className="text-[11px] text-zinc-400 uppercase tracking-wider font-semibold">
                 {stats.ratingCount > 0 ? `${stats.ratingCount} Reviews` : 'No reviews yet'}

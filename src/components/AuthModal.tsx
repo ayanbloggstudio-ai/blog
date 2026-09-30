@@ -36,13 +36,19 @@ export const AuthModal: React.FC = () => {
       return;
     }
 
-    if (authModalMode === 'signup' && !name.trim()) {
-      setLocalError('Please enter your full or display name.');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      setLocalError('Please enter a valid email address (e.g. name@domain.com).');
       return;
     }
 
-    if (authModalMode === 'signup' && password.length < 6) {
-      setLocalError('Password must be at least 6 characters.');
+    if (password.length < 6) {
+      setLocalError('Password must be at least 6 characters long.');
+      return;
+    }
+
+    if (authModalMode === 'signup' && !name.trim()) {
+      setLocalError('Please enter your full or display name.');
       return;
     }
 

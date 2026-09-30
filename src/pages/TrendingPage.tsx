@@ -44,8 +44,8 @@ export const TrendingPage: React.FC = () => {
     return [...products]
       .filter(p => p.status === 'published' || p.status === 'trending' || p.status === 'featured')
       .sort((a, b) => {
-        const scoreA = realScores.productScores[a.id] ?? ((a.viewsCount || 0) + a.initialLikes * 4 + a.initialSaves * 6 + (a.sharesCount || 0) * 10);
-        const scoreB = realScores.productScores[b.id] ?? ((b.viewsCount || 0) + b.initialLikes * 4 + b.initialSaves * 6 + (b.sharesCount || 0) * 10);
+        const scoreA = realScores.productScores[a.id] ?? ((a.viewsCount || 0) + (a.initialLikes || 0) * 4 + (a.initialSaves || 0) * 6 + (a.sharesCount || 0) * 10);
+        const scoreB = realScores.productScores[b.id] ?? ((b.viewsCount || 0) + (b.initialLikes || 0) * 4 + (b.initialSaves || 0) * 6 + (b.sharesCount || 0) * 10);
         return scoreB - scoreA;
       });
   }, [products, realScores.productScores]);

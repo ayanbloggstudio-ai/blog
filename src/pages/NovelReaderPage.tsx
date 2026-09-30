@@ -461,12 +461,12 @@ export const NovelReaderPage: React.FC<NovelReaderPageProps> = ({ novel, chapter
             <span>Chapter {currentChapter.chapterNumber}</span>
             <span>•</span>
             <span>{new Date(currentChapter.publishedAt).toLocaleDateString()}</span>
-            {currentChapter.wordCount && (
+            {typeof currentChapter.wordCount === 'number' && !isNaN(currentChapter.wordCount) && currentChapter.wordCount > 0 ? (
               <>
                 <span>•</span>
                 <span>{currentChapter.wordCount.toLocaleString()} words</span>
               </>
-            )}
+            ) : null}
           </div>
         </header>
 

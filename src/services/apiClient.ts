@@ -35,19 +35,63 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
     headers.set('Authorization', `Bearer ${token}`);
   }
 
-  const response = await fetch(endpoint, {
-    ...options,
-    headers
-  });
+  let response: Response;
+  try {
+    response = await fetch(endpoint, {
+      ...options,
+      headers
+    });
+  } catch {
+    throw new Error('Unable to connect to the PRISM server. Please verify your internet connection.');
+  }
 
   if (!response.ok) {
-    let errorMsg = `HTTP Error ${response.status}`;
+    let errorMsg = '';
     try {
-      const errorData = await response.json();
-      if (errorData.error) errorMsg = errorData.error;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const errorData = await response.json();
+        if (errorData && typeof errorData.error === 'string') {
+          errorMsg = errorData.error;
+        } else if (errorData && typeof errorData.message === 'string') {
+          errorMsg = errorData.message;
+        }
+      }
     } catch {
-      // ignore
+      // ignore JSON parse failure
     }
+
+    if (!errorMsg) {
+      switch (response.status) {
+        case 400:
+          errorMsg = 'Bad request. Please verify the information entered and try again.';
+          break;
+        case 401:
+          errorMsg = 'Invalid email or password. Please verify your credentials.';
+          break;
+        case 403:
+          errorMsg = 'Access denied. You do not have permission to perform this action.';
+          break;
+        case 404:
+          errorMsg = 'Authentication service endpoint not found (404). Please ensure the backend server is reachable.';
+          break;
+        case 409:
+          errorMsg = 'An account with this email address already exists. Please log in instead.';
+          break;
+        case 429:
+          errorMsg = 'Too many requests. Please wait a few moments and try again.';
+          break;
+        case 500:
+        case 502:
+        case 503:
+        case 504:
+          errorMsg = 'Authentication server is currently unavailable. Please try again in a moment.';
+          break;
+        default:
+          errorMsg = `Server response error (${response.status}). Please try again.`;
+      }
+    }
+
     throw new Error(errorMsg);
   }
 

@@ -1,7 +1,7 @@
-import { Router, Request, Response, NextFunction } from 'express';
-import * as db from './database';
+import express, { type Request, type Response, type NextFunction } from 'express';
+import * as db from './database.ts';
 
-export const apiRouter = Router();
+export const apiRouter = express.Router();
 
 // Middleware: Authenticate Bearer token
 function authMiddleware(req: Request, res: Response, next: NextFunction) {
@@ -45,13 +45,21 @@ apiRouter.post('/auth/signup', (req: Request, res: Response) => {
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'Name, email, and password are required.' });
     }
-    if (password.length < 6) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(String(email).trim())) {
+      return res.status(400).json({ error: 'Please provide a valid email address.' });
+    }
+    if (String(password).length < 6) {
       return res.status(400).json({ error: 'Password must be at least 6 characters long.' });
     }
 
-    const result = db.createUser({ name, email, password, avatar, bio });
+    // Force public registration to member role (never assign admin via signup)
+    const result = db.createUser({ name, email, password, avatar, bio, role: 'member' });
     return res.status(201).json(result);
   } catch (err: any) {
+    if (err.message && err.message.toLowerCase().includes('already exists')) {
+      return res.status(409).json({ error: 'An account with this email address already exists. Please log in instead.' });
+    }
     return res.status(400).json({ error: err.message || 'Signup failed' });
   }
 });
@@ -66,7 +74,7 @@ apiRouter.post('/auth/login', (req: Request, res: Response) => {
     const result = db.loginUser(email, password);
     return res.json(result);
   } catch (err: any) {
-    return res.status(401).json({ error: err.message || 'Invalid credentials' });
+    return res.status(401).json({ error: err.message || 'Invalid email or password.' });
   }
 });
 
@@ -535,5 +543,13 @@ apiRouter.get('/search', (req: Request, res: Response) => {
     query: q,
     products,
     novels
+  });
+});
+
+// 404 Handler for undefined API routes
+apiRouter.all('*', (req: Request, res: Response) => {
+  res.status(404).json({
+    error: `API endpoint '${req.method} ${req.originalUrl}' was not found. Please verify the endpoint URL.`,
+    status: 404
   });
 });

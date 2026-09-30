@@ -445,10 +445,10 @@ export const AdminCommunityProducts: React.FC = () => {
                     {/* Stats & Links row */}
                     <div className="flex flex-wrap items-center gap-3 text-[11px] text-zinc-400 pt-1">
                       <span className="flex items-center gap-1 text-rose-400">
-                        <Heart className="w-3 h-3" /> {p.initialLikes}
+                        <Heart className="w-3 h-3" /> {typeof p.initialLikes === 'number' && !isNaN(p.initialLikes) ? p.initialLikes : 0}
                       </span>
                       <span className="flex items-center gap-1 text-amber-400">
-                        <Bookmark className="w-3 h-3" /> {p.initialSaves}
+                        <Bookmark className="w-3 h-3" /> {typeof p.initialSaves === 'number' && !isNaN(p.initialSaves) ? p.initialSaves : 0}
                       </span>
                       <span className="flex items-center gap-1 text-cyan-400">
                         <Share2 className="w-3 h-3" /> {p.sharesCount || 0}

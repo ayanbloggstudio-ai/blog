@@ -115,13 +115,13 @@ export const CommunityProductCard: React.FC<CommunityProductCardProps> = ({
               {product.name}
             </h3>
 
-            {stats.averageRating !== null && (
+            {typeof stats.averageRating === 'number' && !isNaN(stats.averageRating) && stats.ratingCount > 0 ? (
               <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-bold shrink-0">
                 <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                <span>{stats.averageRating}</span>
+                <span>{stats.averageRating.toFixed(1)}</span>
                 <span className="text-[10px] text-zinc-400">({stats.ratingCount})</span>
               </div>
-            )}
+            ) : null}
           </div>
 
           {/* Short Description */}
@@ -160,7 +160,7 @@ export const CommunityProductCard: React.FC<CommunityProductCardProps> = ({
               <ThumbsUp
                 className={`w-3.5 h-3.5 ${stats.isLikedByUser ? 'fill-rose-400 text-rose-400' : ''}`}
               />
-              <span>{stats.likes}</span>
+              <span>{typeof stats.likes === 'number' && !isNaN(stats.likes) ? stats.likes : 0}</span>
             </button>
 
             {/* Comment Count */}
@@ -169,7 +169,7 @@ export const CommunityProductCard: React.FC<CommunityProductCardProps> = ({
               title={`${stats.commentCount} discussions & reviews`}
             >
               <MessageSquare className="w-3.5 h-3.5 text-zinc-400" />
-              <span>{stats.commentCount}</span>
+              <span>{typeof stats.commentCount === 'number' && !isNaN(stats.commentCount) ? stats.commentCount : 0}</span>
             </div>
 
             {/* Save Button */}
@@ -186,7 +186,7 @@ export const CommunityProductCard: React.FC<CommunityProductCardProps> = ({
               <Bookmark
                 className={`w-3.5 h-3.5 ${stats.isSavedByUser ? 'fill-amber-400 text-amber-400' : ''}`}
               />
-              <span>{stats.saves}</span>
+              <span>{typeof stats.saves === 'number' && !isNaN(stats.saves) ? stats.saves : 0}</span>
             </button>
           </div>
 

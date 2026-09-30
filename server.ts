@@ -1,13 +1,17 @@
 import express from 'express';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-import { apiRouter } from './src/server/apiRouter';
-import { generateContentStudioOutput } from './src/server/geminiService';
+import { apiRouter } from './src/server/apiRouter.ts';
+import { generateContentStudioOutput } from './src/server/geminiService.ts';
 
 dotenv.config();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const isProduction = process.env.NODE_ENV === 'production';
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.DEFAULT_APP_PORT || (process.env.PORT === '8080' ? 3000 : (process.env.PORT || 3000));
 
 async function startServer() {
   const app = express();
@@ -50,6 +54,14 @@ async function startServer() {
   // Mount unified real backend API router
   app.use('/api', apiRouter);
 
+  // Catch-all for unmatched /api routes to prevent HTML 404 fallback
+  app.all('/api/*', (req, res) => {
+    res.status(404).json({
+      error: `API route '${req.method} ${req.originalUrl}' not found.`,
+      status: 404
+    });
+  });
+
   if (!isProduction) {
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
@@ -65,7 +77,7 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, () => {
+  app.listen(Number(PORT), '0.0.0.0', () => {
     console.log(`PRISM Full-Stack Server listening on port ${PORT} (prod: ${isProduction})`);
   });
 }

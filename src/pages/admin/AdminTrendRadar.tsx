@@ -494,11 +494,11 @@ export const AdminTrendRadar: React.FC = () => {
                       </span>
 
                       {/* Velocity Indicator */}
-                      {trend.velocityPercent && (
+                      {typeof trend.velocityPercent === 'number' && !isNaN(trend.velocityPercent) && trend.velocityPercent > 0 ? (
                         <span className="px-2 py-0.5 rounded-lg text-[11px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800/50">
                           +{trend.velocityPercent}% velocity
                         </span>
-                      )}
+                      ) : null}
 
                       {/* Status Badge */}
                       <span

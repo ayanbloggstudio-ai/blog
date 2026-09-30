@@ -78,11 +78,11 @@ export const DirectoryCard: React.FC<DirectoryCardProps> = ({ item, rankBadge })
         {/* Top Badges */}
         <div className="absolute top-3.5 inset-x-3.5 flex items-center justify-between gap-2 pointer-events-none">
           <div className="flex items-center gap-1.5 flex-wrap">
-            {rankBadge && (
+            {typeof rankBadge === 'number' && !isNaN(rankBadge) && rankBadge > 0 ? (
               <span className="flex items-center justify-center w-6 h-6 rounded-md bg-amber-400 text-zinc-950 font-black text-xs shadow-md pointer-events-auto">
                 #{rankBadge}
               </span>
-            )}
+            ) : null}
             <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold backdrop-blur-md border pointer-events-auto shadow-sm ${getBestForBadgeStyle(item.bestFor)}`}>
               <Sparkles className="w-3 h-3" />
               {item.bestFor}

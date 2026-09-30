@@ -16,20 +16,21 @@ import { NovelItem } from '../types/novel';
  * - Days since last chapter update
  */
 export function calculateNovelTrendingScore(novel: NovelItem): number {
-  const weeklyReads = novel.weeklyReads ?? Math.round(novel.views * 0.18);
-  const likes = novel.likes;
-  const saves = novel.saves;
-  const comments = novel.commentsCount;
-  const completionRate = novel.completionRate ?? 0.72; // default 72%
+  const views = typeof novel.views === 'number' && !isNaN(novel.views) ? novel.views : 0;
+  const weeklyReads = novel.weeklyReads ?? Math.round(views * 0.18);
+  const likes = typeof novel.likes === 'number' && !isNaN(novel.likes) ? novel.likes : 0;
+  const saves = typeof novel.saves === 'number' && !isNaN(novel.saves) ? novel.saves : 0;
+  const comments = typeof novel.commentsCount === 'number' && !isNaN(novel.commentsCount) ? novel.commentsCount : 0;
+  const completionRate = typeof novel.completionRate === 'number' && !isNaN(novel.completionRate) ? novel.completionRate : 0.72; // default 72%
 
   // Recency decay based on last update date
-  const now = new Date().getTime();
-  const updateTime = new Date(novel.lastUpdatedAt).getTime();
-  const daysSinceUpdate = Math.max(0, (now - updateTime) / (1000 * 60 * 60 * 24));
+  const now = Date.now();
+  const updateTime = novel.lastUpdatedAt ? new Date(novel.lastUpdatedAt).getTime() : now;
+  const daysSinceUpdate = isNaN(updateTime) ? 0 : Math.max(0, (now - updateTime) / (1000 * 60 * 60 * 24));
   const recencyMultiplier = Math.max(0.5, 1.4 - daysSinceUpdate * 0.05);
 
   // Engagement quality weighting
-  const readWeight = weeklyReads * 0.65;
+  const readWeight = (weeklyReads || 0) * 0.65;
   const likeWeight = likes * 1.5;
   const saveWeight = saves * 2.8; // saves reflect strong reading dedication
   const commentWeight = comments * 2.2; // active discussion
@@ -37,7 +38,7 @@ export function calculateNovelTrendingScore(novel: NovelItem): number {
 
   const rawScore = (readWeight + likeWeight + saveWeight + commentWeight + completionBonus) * recencyMultiplier;
 
-  return Math.round(rawScore);
+  return isNaN(rawScore) ? 0 : Math.round(rawScore);
 }
 
 /**
