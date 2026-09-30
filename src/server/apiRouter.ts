@@ -1,5 +1,6 @@
 import express, { type Request, type Response, type NextFunction } from 'express';
 import * as db from './database.ts';
+import * as geminiService from './geminiService.ts';
 
 export const apiRouter = express.Router();
 
@@ -544,6 +545,93 @@ apiRouter.get('/search', (req: Request, res: Response) => {
     products,
     novels
   });
+});
+
+// -------------------------------------------------------------
+// GEMINI AI INTEGRATION (AUTHENTIC SERVER-SIDE WORKFLOW)
+// -------------------------------------------------------------
+apiRouter.get('/gemini/status', requireAdmin, (req: Request, res: Response) => {
+  try {
+    const status = geminiService.checkGeminiStatus();
+    return res.json(status);
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Failed to check Gemini status' });
+  }
+});
+
+apiRouter.post('/gemini/generate-content', requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const { topic } = req.body;
+    if (!topic || !String(topic).trim()) {
+      return res.status(400).json({ error: 'Topic is required for AI generation.' });
+    }
+
+    const result = await geminiService.generateContentStudioOutput(req.body);
+    return res.json(result);
+  } catch (err: any) {
+    const msg = err.message || 'Gemini generation failed';
+    console.error('API /gemini/generate-content error:', msg);
+
+    if (msg.includes('GEMINI_API_KEY is not configured') || msg.includes('API key not valid')) {
+      return res.status(503).json({ error: msg });
+    }
+    if (msg.includes('Resource has been exhausted') || msg.includes('429') || msg.includes('Quota')) {
+      return res.status(429).json({ error: 'Gemini API rate limit exceeded. Please wait a moment and try again.' });
+    }
+    return res.status(500).json({ error: msg });
+  }
+});
+
+apiRouter.post('/gemini/refine-text', requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const { action, text } = req.body;
+    if (!action) {
+      return res.status(400).json({ error: 'Action is required.' });
+    }
+    if (!text || !String(text).trim()) {
+      return res.status(400).json({ error: 'Text is required for refinement.' });
+    }
+
+    const result = await geminiService.refineContentText(req.body);
+    return res.json(result);
+  } catch (err: any) {
+    const msg = err.message || 'Gemini text refinement failed';
+    console.error('API /gemini/refine-text error:', msg);
+
+    if (msg.includes('GEMINI_API_KEY is not configured') || msg.includes('API key not valid')) {
+      return res.status(503).json({ error: msg });
+    }
+    if (msg.includes('Resource has been exhausted') || msg.includes('429')) {
+      return res.status(429).json({ error: 'Gemini API rate limit exceeded. Please wait a moment and try again.' });
+    }
+    return res.status(500).json({ error: msg });
+  }
+});
+
+apiRouter.post('/gemini/generate-novel', requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const { type, novelTitle } = req.body;
+    if (!type) {
+      return res.status(400).json({ error: 'Generation type is required (e.g. idea, character, chapter).' });
+    }
+    if (!novelTitle || !String(novelTitle).trim()) {
+      return res.status(400).json({ error: 'Novel title is required.' });
+    }
+
+    const result = await geminiService.generateNovelContent(req.body);
+    return res.json(result);
+  } catch (err: any) {
+    const msg = err.message || 'Gemini novel generation failed';
+    console.error('API /gemini/generate-novel error:', msg);
+
+    if (msg.includes('GEMINI_API_KEY is not configured') || msg.includes('API key not valid')) {
+      return res.status(503).json({ error: msg });
+    }
+    if (msg.includes('Resource has been exhausted') || msg.includes('429')) {
+      return res.status(429).json({ error: 'Gemini API rate limit exceeded. Please wait a moment and try again.' });
+    }
+    return res.status(500).json({ error: msg });
+  }
 });
 
 // 404 Handler for undefined API routes

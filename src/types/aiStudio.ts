@@ -1,15 +1,32 @@
 export type AIStudioContentType =
+  | 'blog-article'
+  | 'tech-article'
+  | 'ai-tool'
+  | 'product-description'
+  | 'movie-review'
+  | 'anime-manga'
+  | 'novel-outline'
+  | 'novel-chapter'
   | 'article'
   | 'short-story'
   | 'top-10'
   | 'top-20'
   | 'recommendation'
   | 'comparison'
-  | 'ai-tool'
   | 'tech-product'
   | 'movie'
   | 'manhwa'
   | 'anime';
+
+export type DesiredContentLength = 'short' | 'medium' | 'long' | 'comprehensive';
+
+export type AIRefineAction =
+  | 'regenerate'
+  | 'continue'
+  | 'improve'
+  | 'expand'
+  | 'shorten'
+  | 'fix_grammar';
 
 export interface AIHeadlineIdea {
   id: string;
@@ -89,10 +106,13 @@ export interface AIGeneratedContentResult {
 
 export interface AIStudioFormState {
   topic: string;
+  title?: string;
   category: string;
   contentType: AIStudioContentType;
   targetAudience: string;
+  desiredLength: DesiredContentLength;
   sourceReferenceInfo: string;
+  additionalInstructions?: string;
   tone: string;
   focusAngle: string;
 }
@@ -126,3 +146,37 @@ export type AIStudioWorkflowStage =
   | 'editing'       // 4. Human editing suite
   | 'preview'       // 5. Visual Live Preview
   | 'approved';     // 6. Sign-off & Published/Saved to CMS
+
+export type NovelAIGenerateType =
+  | 'idea'
+  | 'character'
+  | 'story_outline'
+  | 'chapter_outline'
+  | 'chapter'
+  | 'chapter_continuation';
+
+export interface NovelAIPayload {
+  type: NovelAIGenerateType;
+  novelTitle: string;
+  genre: string;
+  characters?: string;
+  setting?: string;
+  plotDirection?: string;
+  writingStyle?: string;
+  chapterLength?: 'short' | 'medium' | 'long';
+  previousChapterContext?: string;
+  additionalPrompt?: string;
+}
+
+export interface NovelAIResult {
+  result: string;
+  type: NovelAIGenerateType;
+  novelTitle: string;
+  suggestions?: string[];
+}
+
+export interface GeminiStatusInfo {
+  isConfigured: boolean;
+  model: string;
+  error?: string;
+}

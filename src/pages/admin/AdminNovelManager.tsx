@@ -24,7 +24,10 @@ import {
   Flag,
   Check,
   RotateCcw,
-  ExternalLink
+  ExternalLink,
+  Wand2,
+  RefreshCw,
+  Copy
 } from 'lucide-react';
 import { useNovels } from '../../context/NovelContext';
 import { useDiscovery } from '../../context/DiscoveryContext';
@@ -35,6 +38,8 @@ import {
   NovelStatus,
   NovelSubmissionStatus
 } from '../../types/novel';
+import { NovelAIGenerateType } from '../../types/aiStudio';
+import { requestNovelGeneration } from '../../services/aiContentStudioService';
 import { EmptyState } from '../../components/EmptyState';
 import { SafeImage } from '../../components/SafeImage';
 
@@ -100,6 +105,23 @@ export const AdminNovelManager: React.FC = () => {
 
   // Delete confirmation
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  // Gemini AI Novel Assistant State
+  const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
+  const [aiType, setAiType] = useState<NovelAIGenerateType>('idea');
+  const [aiNovelTitle, setAiNovelTitle] = useState('');
+  const [aiGenre, setAiGenre] = useState('LitRPG & System');
+  const [aiCharacters, setAiCharacters] = useState('');
+  const [aiSetting, setAiSetting] = useState('');
+  const [aiPlotDirection, setAiPlotDirection] = useState('');
+  const [aiWritingStyle, setAiWritingStyle] = useState('Cinematic, fast-paced, immersive progression fantasy with visceral stakes');
+  const [aiChapterLength, setAiChapterLength] = useState<'short' | 'medium' | 'long'>('medium');
+  const [aiPreviousChapterContext, setAiPreviousChapterContext] = useState('');
+  const [aiAdditionalPrompt, setAiAdditionalPrompt] = useState('');
+  const [isAIGenerating, setIsAIGenerating] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiResultText, setAiResultText] = useState('');
+  const [copiedAI, setCopiedAI] = useState(false);
 
   // Series Form State
   const [seriesForm, setSeriesForm] = useState<Partial<NovelItem>>({
@@ -332,6 +354,115 @@ export const AdminNovelManager: React.FC = () => {
     setActionSubmissionId(null);
   };
 
+  // Gemini AI Novel Assistant Handlers
+  const openNovelAIAssistant = (preferredType: NovelAIGenerateType = 'idea', targetNovel?: NovelItem | null) => {
+    const novel = targetNovel || selectedNovelForChapters || (novels.length > 0 ? novels[0] : null);
+    if (novel) {
+      setAiNovelTitle(novel.title);
+      setAiGenre(novel.genres?.[0] || 'LitRPG & System');
+      setAiSetting(novel.shortDescription || '');
+      if (novel.chapters && novel.chapters.length > 0) {
+        const lastChap = novel.chapters[novel.chapters.length - 1];
+        setAiPreviousChapterContext(lastChap.content || '');
+      } else {
+        setAiPreviousChapterContext('');
+      }
+    } else if (seriesForm.title) {
+      setAiNovelTitle(seriesForm.title);
+      setAiGenre(genresText.split(',')[0]?.trim() || 'LitRPG & System');
+      setAiSetting(seriesForm.shortDescription || '');
+      setAiPreviousChapterContext('');
+    } else {
+      setAiNovelTitle('');
+      setAiPreviousChapterContext('');
+    }
+
+    setAiType(preferredType);
+    setAiError(null);
+    setAiResultText('');
+    setCopiedAI(false);
+    setIsAIAssistantOpen(true);
+  };
+
+  const handleGenerateNovelAI = async () => {
+    if (!aiNovelTitle.trim()) {
+      showToast('Please enter a novel title.', 'error');
+      return;
+    }
+
+    setIsAIGenerating(true);
+    setAiError(null);
+
+    try {
+      const response = await requestNovelGeneration({
+        type: aiType,
+        novelTitle: aiNovelTitle,
+        genre: aiGenre,
+        characters: aiCharacters,
+        setting: aiSetting,
+        plotDirection: aiPlotDirection,
+        writingStyle: aiWritingStyle,
+        chapterLength: aiChapterLength,
+        previousChapterContext: aiPreviousChapterContext,
+        additionalPrompt: aiAdditionalPrompt
+      });
+
+      setAiResultText(response.result);
+      showToast(`Generated ${aiType.replace('_', ' ')} with Gemini!`, 'success');
+    } catch (err: any) {
+      console.error(err);
+      setAiError(err.message || 'Generation failed. Please try again.');
+      showToast(err.message || 'Novel generation failed', 'error');
+    } finally {
+      setIsAIGenerating(false);
+    }
+  };
+
+  const applyAIToChapterForm = () => {
+    if (!aiResultText.trim()) return;
+    setNewChapterForm(prev => ({
+      ...prev,
+      content: aiResultText.trim()
+    }));
+    setIsAIAssistantOpen(false);
+    showToast('Applied generated content to chapter form!', 'success');
+  };
+
+  const applyAIToSeriesSynopsis = () => {
+    if (!aiResultText.trim()) return;
+    setSeriesForm(prev => ({
+      ...prev,
+      description: aiResultText.trim()
+    }));
+    setIsAIAssistantOpen(false);
+    showToast('Applied generated content to series synopsis!', 'success');
+  };
+
+  const saveAIChapterAsDraft = () => {
+    if (!selectedNovelForChapters) {
+      showToast('Please open the Chapters modal of a novel to save chapters.', 'error');
+      return;
+    }
+    if (!aiResultText.trim()) {
+      showToast('Generated text is empty.', 'error');
+      return;
+    }
+
+    const nextChapNum = (selectedNovelForChapters.chapters?.length || 0) + 1;
+    adminAddChapter(selectedNovelForChapters.id, {
+      chapterNumber: nextChapNum,
+      title: `Chapter ${nextChapNum}`,
+      publishedAt: new Date().toISOString().split('T')[0],
+      content: aiResultText.trim(),
+      wordCount: aiResultText.trim().split(/\s+/).length
+    });
+
+    const updated = novels.find(n => n.id === selectedNovelForChapters.id);
+    if (updated) setSelectedNovelForChapters(updated);
+    setIsAIAssistantOpen(false);
+    showToast(`Chapter ${nextChapNum} saved as draft!`, 'success');
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-300 pb-16">
       {/* Top Banner Header */}
@@ -346,7 +477,15 @@ export const AdminNovelManager: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => openNovelAIAssistant('idea')}
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-white font-extrabold text-xs flex items-center gap-1.5 transition-all shadow-md shadow-purple-600/30 cursor-pointer"
+          >
+            <Sparkles className="w-4 h-4 fill-current" />
+            <span>Gemini Story Architect</span>
+          </button>
+
           <button
             onClick={() => openCreateSeries('novel', true)}
             className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-zinc-950 font-black text-xs flex items-center gap-1.5 transition-all shadow-md shadow-amber-500/20 cursor-pointer"
@@ -1021,9 +1160,33 @@ export const AdminNovelManager: React.FC = () => {
 
             {/* Add or Edit Chapter Form */}
             <form onSubmit={handleSaveChapter} className="p-4 rounded-2xl bg-zinc-900/90 border border-zinc-800 space-y-3">
-              <h3 className="text-xs font-extrabold uppercase tracking-wider text-indigo-400">
-                {isEditingChapter ? `Edit Chapter #${isEditingChapter.chapterNumber}` : '+ Add Next Chapter'}
-              </h3>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-xs font-extrabold uppercase tracking-wider text-indigo-400">
+                  {isEditingChapter ? `Edit Chapter #${isEditingChapter.chapterNumber}` : '+ Add Next Chapter'}
+                </h3>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => openNovelAIAssistant('chapter', selectedNovelForChapters)}
+                    className="px-2.5 py-1 rounded-lg bg-purple-950/80 hover:bg-purple-900 text-purple-300 text-[11px] font-bold border border-purple-800 flex items-center gap-1 transition-all"
+                    title="Write a new chapter using Gemini 3.8 Flash"
+                  >
+                    <Sparkles className="w-3 h-3 text-purple-400" />
+                    <span>Draft Chapter with Gemini</span>
+                  </button>
+                  {selectedNovelForChapters.chapters && selectedNovelForChapters.chapters.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => openNovelAIAssistant('chapter_continuation', selectedNovelForChapters)}
+                      className="px-2.5 py-1 rounded-lg bg-indigo-950/80 hover:bg-indigo-900 text-indigo-300 text-[11px] font-bold border border-indigo-800 flex items-center gap-1 transition-all"
+                      title="Continue writing seamlessly from the previous chapter"
+                    >
+                      <ArrowRight className="w-3 h-3 text-indigo-400" />
+                      <span>Continue Previous Chapter</span>
+                    </button>
+                  )}
+                </div>
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
@@ -1276,6 +1439,299 @@ export const AdminNovelManager: React.FC = () => {
                 Confirm {actionType === 'reject' ? 'Rejection' : 'Request'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Gemini AI Story & Chapter Assistant Modal */}
+      {isAIAssistantOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-[#0b0e15] border border-purple-800/80 rounded-3xl max-w-4xl w-full p-6 sm:p-8 space-y-6 shadow-2xl max-h-[92vh] overflow-y-auto">
+            
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-lg bg-purple-500 text-zinc-950 font-black text-[11px] uppercase tracking-wider flex items-center gap-1">
+                    <Sparkles className="w-3.5 h-3.5 fill-current" />
+                    GEMINI NOVEL ARCHITECT
+                  </span>
+                  <span className="text-[11px] font-mono text-zinc-400">
+                    Model: gemini-3.8-flash
+                  </span>
+                </div>
+                <h2 className="text-xl font-extrabold text-white">
+                  Web Novel & Serialized Fiction Assistant
+                </h2>
+              </div>
+              <button
+                onClick={() => setIsAIAssistantOpen(false)}
+                className="p-2 rounded-xl bg-zinc-900 text-zinc-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Error Banner */}
+            {aiError && (
+              <div className="p-3.5 rounded-xl bg-rose-950/40 border border-rose-800 text-rose-200 text-xs flex items-center justify-between">
+                <span><strong>Generation Error:</strong> {aiError}</span>
+                <button onClick={() => setAiError(null)} className="text-rose-400 hover:text-white">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+
+            {/* Generator Mode Selector Tabs */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+              {[
+                { id: 'idea', label: 'Story Ideas', desc: '3 high-stakes hooks' },
+                { id: 'character', label: 'Characters', desc: 'Dossiers & dynamics' },
+                { id: 'story_outline', label: 'Story Outline', desc: 'Multi-arc blueprint' },
+                { id: 'chapter_outline', label: 'Chapter Outline', desc: 'Pacing & beats' },
+                { id: 'chapter', label: 'Full Chapter', desc: 'Complete prose scene' },
+                { id: 'chapter_continuation', label: 'Continuation', desc: 'Seamless continuation' }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setAiType(tab.id as NovelAIGenerateType)}
+                  className={`p-2.5 rounded-xl border text-left transition-all ${
+                    aiType === tab.id
+                      ? 'bg-purple-950/80 border-purple-500 text-white shadow-md shadow-purple-950/50 ring-1 ring-purple-500'
+                      : 'bg-zinc-900/80 border-zinc-800 text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  <div className="text-xs font-bold truncate">{tab.label}</div>
+                  <div className="text-[10px] text-zinc-500 truncate">{tab.desc}</div>
+                </button>
+              ))}
+            </div>
+
+            {/* Input Form Fields */}
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-zinc-300 mb-1">Novel Title *</label>
+                  <input
+                    type="text"
+                    value={aiNovelTitle}
+                    onChange={(e) => setAiNovelTitle(e.target.value)}
+                    placeholder="e.g. Sovereign of the Broken Core"
+                    className="w-full px-3.5 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-white focus:outline-none focus:border-purple-500 font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-zinc-300 mb-1">Genre *</label>
+                  <input
+                    type="text"
+                    value={aiGenre}
+                    onChange={(e) => setAiGenre(e.target.value)}
+                    placeholder="LitRPG, Cultivation, Dark Fantasy, Cyberpunk..."
+                    className="w-full px-3.5 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-white focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-zinc-300 mb-1">Characters</label>
+                  <input
+                    type="text"
+                    value={aiCharacters}
+                    onChange={(e) => setAiCharacters(e.target.value)}
+                    placeholder="Protagonist, rival, companion..."
+                    className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-white focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-zinc-300 mb-1">Setting / World-Building</label>
+                  <input
+                    type="text"
+                    value={aiSetting}
+                    onChange={(e) => setAiSetting(e.target.value)}
+                    placeholder="Shattered floating islands, system dungeon..."
+                    className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-white focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-zinc-300 mb-1">Writing Style</label>
+                  <input
+                    type="text"
+                    value={aiWritingStyle}
+                    onChange={(e) => setAiWritingStyle(e.target.value)}
+                    placeholder="Cinematic, visceral, poetic..."
+                    className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-white focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-zinc-300 mb-1">Plot Direction / Key Tension Beat</label>
+                  <input
+                    type="text"
+                    value={aiPlotDirection}
+                    onChange={(e) => setAiPlotDirection(e.target.value)}
+                    placeholder="A trap springs during the dungeon raid..."
+                    className="w-full px-3.5 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-white focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-zinc-300 mb-1">Target Chapter Length</label>
+                  <select
+                    value={aiChapterLength}
+                    onChange={(e) => setAiChapterLength(e.target.value as 'short' | 'medium' | 'long')}
+                    className="w-full px-3.5 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-white focus:outline-none focus:border-purple-500"
+                  >
+                    <option value="short">Short Scene (~800 - 1,200 words)</option>
+                    <option value="medium">Standard Chapter (~1,500 - 2,500 words)</option>
+                    <option value="long">Epic Extended Chapter (~3,000 - 4,500 words)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Previous Chapter Context Box (For strict continuity) */}
+              {(aiType === 'chapter' || aiType === 'chapter_continuation') && (
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold text-zinc-300">
+                      Previous Chapter Context (for Strict Continuity)
+                    </label>
+                    {selectedNovelForChapters?.chapters && selectedNovelForChapters.chapters.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const chaps = selectedNovelForChapters.chapters || [];
+                          const lastChap = chaps[chaps.length - 1];
+                          setAiPreviousChapterContext(lastChap?.content || '');
+                          showToast(`Loaded Chapter #${lastChap.chapterNumber} text for continuity`, 'info');
+                        }}
+                        className="text-[11px] text-purple-400 hover:text-purple-300 font-semibold"
+                      >
+                        Load Last Chapter Context
+                      </button>
+                    )}
+                  </div>
+                  <textarea
+                    rows={3}
+                    value={aiPreviousChapterContext}
+                    onChange={(e) => setAiPreviousChapterContext(e.target.value)}
+                    placeholder="Paste the ending paragraphs of the previous chapter here. Gemini will continue the story seamlessly without inventing previous events."
+                    className="w-full px-3.5 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-xs text-white font-mono"
+                  />
+                </div>
+              )}
+
+              {/* Additional Instructions */}
+              <div>
+                <label className="block text-xs font-bold text-zinc-300 mb-1">Additional Author Notes</label>
+                <input
+                  type="text"
+                  value={aiAdditionalPrompt}
+                  onChange={(e) => setAiAdditionalPrompt(e.target.value)}
+                  placeholder="e.g. End on a massive cliffhanger, include system notification status screen, emphasize cold wind..."
+                  className="w-full px-3.5 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-white focus:outline-none focus:border-purple-500"
+                />
+              </div>
+
+              {/* Generate Button */}
+              <div className="flex items-center justify-between pt-2">
+                <span className="text-xs text-zinc-400">
+                  Powered by Gemini 3.8 Flash • Drafts remain unpublished until approved
+                </span>
+
+                <button
+                  type="button"
+                  disabled={isAIGenerating || !aiNovelTitle.trim()}
+                  onClick={handleGenerateNovelAI}
+                  className={`px-6 py-2.5 rounded-xl font-extrabold text-xs flex items-center gap-2 transition-all shadow-lg ${
+                    isAIGenerating || !aiNovelTitle.trim()
+                      ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-white shadow-purple-600/30 active:scale-95'
+                  }`}
+                >
+                  <Sparkles className={`w-4 h-4 fill-current ${isAIGenerating ? 'animate-spin' : ''}`} />
+                  <span>{isAIGenerating ? 'Writing with Gemini 3.8...' : `Generate ${aiType.replace('_', ' ')}`}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Generated Output Area */}
+            {aiResultText && (
+              <div className="pt-4 border-t border-zinc-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    <span className="text-xs font-bold text-white uppercase tracking-wider">
+                      Generated Content Preview
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-zinc-400 font-mono">
+                    <span>{aiResultText.split(/\s+/).filter(Boolean).length} words</span>
+                  </div>
+                </div>
+
+                <textarea
+                  rows={12}
+                  value={aiResultText}
+                  onChange={(e) => setAiResultText(e.target.value)}
+                  className="w-full px-4 py-3 rounded-2xl bg-zinc-950 border border-zinc-800 text-zinc-100 text-xs font-serif leading-relaxed focus:outline-none focus:border-purple-500 shadow-inner"
+                />
+
+                {/* Actions on Generated Output */}
+                <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(aiResultText);
+                      setCopiedAI(true);
+                      showToast('Copied text to clipboard', 'success');
+                      setTimeout(() => setCopiedAI(false), 2000);
+                    }}
+                    className="px-3.5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-semibold flex items-center gap-1.5"
+                  >
+                    {copiedAI ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copiedAI ? 'Copied!' : 'Copy Text'}</span>
+                  </button>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={applyAIToSeriesSynopsis}
+                      className="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold"
+                    >
+                      Insert into Synopsis
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={applyAIToChapterForm}
+                      className="px-4 py-2 rounded-xl bg-indigo-950 hover:bg-indigo-900 border border-indigo-800 text-indigo-300 text-xs font-bold flex items-center gap-1.5"
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                      <span>Insert into Chapter Form</span>
+                    </button>
+
+                    {selectedNovelForChapters && (
+                      <button
+                        type="button"
+                        onClick={saveAIChapterAsDraft}
+                        className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-md shadow-purple-600/30"
+                      >
+                        <Save className="w-3.5 h-3.5" />
+                        <span>Save as Draft Chapter</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
           </div>
         </div>
       )}
