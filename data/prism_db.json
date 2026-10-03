@@ -183,6 +183,83 @@
       "role": "admin",
       "createdAt": "2026-09-30T17:13:15.132Z",
       "expiresAt": "2026-10-30T17:13:15.132Z"
+    },
+    {
+      "token": "token-d61f15c149f359df5abf749f25d7091620b9f8c59f7a29aed67612fc31317104",
+      "userId": "user-admin-01",
+      "role": "admin",
+      "createdAt": "2026-10-01T15:44:54.454Z",
+      "expiresAt": "2026-10-31T15:44:54.454Z"
+    },
+    {
+      "token": "token-ac4a1dd013d51afbef11f12002ad761d6411eb3ec00b83099fc103782fde1c35",
+      "userId": "user-admin-01",
+      "role": "admin",
+      "createdAt": "2026-10-01T15:46:42.981Z",
+      "expiresAt": "2026-10-31T15:46:42.981Z"
+    },
+    {
+      "token": "token-df49a28310735dd231171684062d1d646b8a4b9aa02751908427fb81b958a9bb",
+      "userId": "user-admin-01",
+      "role": "admin",
+      "createdAt": "2026-10-01T15:46:54.488Z",
+      "expiresAt": "2026-10-31T15:46:54.488Z"
+    },
+    {
+      "token": "token-c3c81c0bd02397816c0b268cc4664107c7a74a575976bebba0e153b88aab1bad",
+      "userId": "user-admin-01",
+      "role": "admin",
+      "createdAt": "2026-10-01T15:47:13.396Z",
+      "expiresAt": "2026-10-31T15:47:13.396Z"
+    },
+    {
+      "token": "token-28556ff78d9ae13224fd33ea867c6006a61fb1767da09b235292812787b6c2f6",
+      "userId": "user-admin-01",
+      "role": "admin",
+      "createdAt": "2026-10-01T15:47:34.063Z",
+      "expiresAt": "2026-10-31T15:47:34.063Z"
+    },
+    {
+      "token": "token-f5fb584331a17a06d91d9970ae1fd6fdf6853a1ad46089c1eead24b62eb66051",
+      "userId": "user-admin-01",
+      "role": "admin",
+      "createdAt": "2026-10-03T13:25:04.816Z",
+      "expiresAt": "2026-11-02T13:25:04.816Z"
+    },
+    {
+      "token": "token-6b57fbe06375b04f608224b7c0224bd33d1935caf6afc9599da29a0383f4c405",
+      "userId": "user-admin-01",
+      "role": "admin",
+      "createdAt": "2026-10-03T13:26:27.854Z",
+      "expiresAt": "2026-11-02T13:26:27.854Z"
+    },
+    {
+      "token": "token-0b7eac7cea2fe248747818cff46e510df5c43319c4b6938caff6d89253555190",
+      "userId": "user-admin-01",
+      "role": "admin",
+      "createdAt": "2026-10-03T13:26:42.095Z",
+      "expiresAt": "2026-11-02T13:26:42.095Z"
+    },
+    {
+      "token": "token-eb96645a3627777fef513a9c22639e1a9fac971fda70bdf31e9e7626ac5b69e7",
+      "userId": "user-admin-01",
+      "role": "admin",
+      "createdAt": "2026-10-03T13:30:16.054Z",
+      "expiresAt": "2026-11-02T13:30:16.054Z"
+    },
+    {
+      "token": "token-51c1c3ee043e0bef0561741663a564aa3c53890a73df5f946d2e126caea3f25c",
+      "userId": "user-admin-01",
+      "role": "admin",
+      "createdAt": "2026-10-03T13:30:16.081Z",
+      "expiresAt": "2026-11-02T13:30:16.081Z"
+    },
+    {
+      "token": "token-af4ade11a05a1df44810934b3d1b1b62365aed9508cf99767ac0089e56ecd6f4",
+      "userId": "user-admin-01",
+      "role": "admin",
+      "createdAt": "2026-10-03T13:30:16.103Z",
+      "expiresAt": "2026-11-02T13:30:16.103Z"
     }
   ],
   "products": [

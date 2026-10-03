@@ -615,6 +615,7 @@ export const dbRowToTrend = (r: any): TrendItem => ({
 export interface SupabaseStatusResult {
   connected: boolean;
   configured: boolean;
+  tablesInitialized: boolean;
   url: string;
   latencyMs?: number;
   tables: {
@@ -625,12 +626,27 @@ export interface SupabaseStatusResult {
   error?: string;
 }
 
+export const isTableMissingError = (err: any): boolean => {
+  if (!err) return false;
+  const msg = (err.message || String(err)).toLowerCase();
+  const code = String(err.code || '').toLowerCase();
+  return (
+    code === '42p01' ||
+    code === 'pgrst205' ||
+    msg.includes('schema cache') ||
+    msg.includes('does not exist') ||
+    msg.includes('could not find the table') ||
+    msg.includes('not found')
+  );
+};
+
 export const checkSupabaseConnection = async (): Promise<SupabaseStatusResult> => {
   const config = getSupabaseConfig();
   if (!config.url || !config.anonKey) {
     return {
       connected: false,
       configured: false,
+      tablesInitialized: false,
       url: config.url || '',
       tables: [],
       error: 'Supabase URL or Anon Key is missing. Configure your credentials.'
@@ -642,6 +658,7 @@ export const checkSupabaseConnection = async (): Promise<SupabaseStatusResult> =
     return {
       connected: false,
       configured: true,
+      tablesInitialized: false,
       url: config.url,
       tables: [],
       error: 'Failed to initialize Supabase client.'
@@ -658,6 +675,7 @@ export const checkSupabaseConnection = async (): Promise<SupabaseStatusResult> =
     'cms_trends'
   ];
 
+  let reachable = false;
   const tableResults = await Promise.all(
     tableNames.map(async (tbl) => {
       try {
@@ -666,8 +684,12 @@ export const checkSupabaseConnection = async (): Promise<SupabaseStatusResult> =
           .select('*', { count: 'exact', head: true });
         
         if (error) {
+          if (isTableMissingError(error)) {
+            reachable = true; // Got a valid response from PostgREST, credentials work
+          }
           return { name: tbl, exists: false, count: 0 };
         }
+        reachable = true;
         return { name: tbl, exists: true, count: count ?? 0 };
       } catch {
         return { name: tbl, exists: false, count: 0 };
@@ -681,12 +703,15 @@ export const checkSupabaseConnection = async (): Promise<SupabaseStatusResult> =
   const anyTableExists = tableResults.some((t) => t.exists);
 
   return {
-    connected: anyTableExists,
+    connected: reachable || anyTableExists,
     configured: true,
+    tablesInitialized: anyTableExists,
     url: config.url,
     latencyMs: latency,
     tables: tableResults,
-    error: anyTableExists ? undefined : 'Tables not detected in Supabase. Run the SQL schema script in your Supabase SQL Editor.'
+    error: anyTableExists
+      ? undefined
+      : 'Supabase connected, but database tables are not yet created. Run supabase_schema.sql in your Supabase SQL Editor.'
   };
 };
 
@@ -700,7 +725,7 @@ export const pushAllDataToSupabase = async (payload: {
   comparisons: CMSComparisonPair[];
   mediaAssets: CMSMediaAsset[];
   trends: TrendItem[];
-}): Promise<{ success: boolean; message: string; details?: any }> => {
+}): Promise<{ success: boolean; isTablesMissing?: boolean; message: string; details?: any }> => {
   const client = getSupabaseClient();
   if (!client) {
     return { success: false, message: 'Supabase client is not configured' };
@@ -713,7 +738,16 @@ export const pushAllDataToSupabase = async (payload: {
     if (payload.categories.length > 0) {
       const catRows = payload.categories.map(categoryToDbRow);
       const { error: catErr } = await client.from('cms_categories').upsert(catRows);
-      if (catErr) throw new Error(`Category upsert failed: ${catErr.message}`);
+      if (catErr) {
+        if (isTableMissingError(catErr)) {
+          return {
+            success: false,
+            isTablesMissing: true,
+            message: 'Database tables do not exist in Supabase yet. Please run supabase_schema.sql in your Supabase SQL Editor first.'
+          };
+        }
+        throw new Error(`Category upsert failed: ${catErr.message}`);
+      }
       results.categories = catRows.length;
     }
 
@@ -721,7 +755,16 @@ export const pushAllDataToSupabase = async (payload: {
     if (payload.items.length > 0) {
       const itemRows = payload.items.map(itemToDbRow);
       const { error: itemErr } = await client.from('cms_items').upsert(itemRows);
-      if (itemErr) throw new Error(`Items upsert failed: ${itemErr.message}`);
+      if (itemErr) {
+        if (isTableMissingError(itemErr)) {
+          return {
+            success: false,
+            isTablesMissing: true,
+            message: 'Database tables do not exist in Supabase yet. Please run supabase_schema.sql in your Supabase SQL Editor first.'
+          };
+        }
+        throw new Error(`Items upsert failed: ${itemErr.message}`);
+      }
       results.items = itemRows.length;
     }
 
@@ -729,7 +772,16 @@ export const pushAllDataToSupabase = async (payload: {
     if (payload.collections.length > 0) {
       const colRows = payload.collections.map(collectionToDbRow);
       const { error: colErr } = await client.from('cms_collections').upsert(colRows);
-      if (colErr) throw new Error(`Collections upsert failed: ${colErr.message}`);
+      if (colErr) {
+        if (isTableMissingError(colErr)) {
+          return {
+            success: false,
+            isTablesMissing: true,
+            message: 'Database tables do not exist in Supabase yet. Please run supabase_schema.sql in your Supabase SQL Editor first.'
+          };
+        }
+        throw new Error(`Collections upsert failed: ${colErr.message}`);
+      }
       results.collections = colRows.length;
     }
 
@@ -737,7 +789,16 @@ export const pushAllDataToSupabase = async (payload: {
     if (payload.comparisons.length > 0) {
       const compRows = payload.comparisons.map(comparisonToDbRow);
       const { error: compErr } = await client.from('cms_comparisons').upsert(compRows);
-      if (compErr) throw new Error(`Comparisons upsert failed: ${compErr.message}`);
+      if (compErr) {
+        if (isTableMissingError(compErr)) {
+          return {
+            success: false,
+            isTablesMissing: true,
+            message: 'Database tables do not exist in Supabase yet. Please run supabase_schema.sql in your Supabase SQL Editor first.'
+          };
+        }
+        throw new Error(`Comparisons upsert failed: ${compErr.message}`);
+      }
       results.comparisons = compRows.length;
     }
 
@@ -745,7 +806,16 @@ export const pushAllDataToSupabase = async (payload: {
     if (payload.mediaAssets.length > 0) {
       const mediaRows = payload.mediaAssets.map(mediaToDbRow);
       const { error: mediaErr } = await client.from('cms_media_assets').upsert(mediaRows);
-      if (mediaErr) throw new Error(`Media upsert failed: ${mediaErr.message}`);
+      if (mediaErr) {
+        if (isTableMissingError(mediaErr)) {
+          return {
+            success: false,
+            isTablesMissing: true,
+            message: 'Database tables do not exist in Supabase yet. Please run supabase_schema.sql in your Supabase SQL Editor first.'
+          };
+        }
+        throw new Error(`Media upsert failed: ${mediaErr.message}`);
+      }
       results.media = mediaRows.length;
     }
 
@@ -753,7 +823,16 @@ export const pushAllDataToSupabase = async (payload: {
     if (payload.trends.length > 0) {
       const trendRows = payload.trends.map(trendToDbRow);
       const { error: trendErr } = await client.from('cms_trends').upsert(trendRows);
-      if (trendErr) throw new Error(`Trends upsert failed: ${trendErr.message}`);
+      if (trendErr) {
+        if (isTableMissingError(trendErr)) {
+          return {
+            success: false,
+            isTablesMissing: true,
+            message: 'Database tables do not exist in Supabase yet. Please run supabase_schema.sql in your Supabase SQL Editor first.'
+          };
+        }
+        throw new Error(`Trends upsert failed: ${trendErr.message}`);
+      }
       results.trends = trendRows.length;
     }
 
@@ -763,7 +842,14 @@ export const pushAllDataToSupabase = async (payload: {
       details: results
     };
   } catch (err: any) {
-    console.error('Supabase Push Error:', err);
+    if (isTableMissingError(err)) {
+      return {
+        success: false,
+        isTablesMissing: true,
+        message: 'Database tables do not exist in Supabase yet. Please run supabase_schema.sql in your Supabase SQL Editor first.'
+      };
+    }
+    console.warn('Supabase Push Note:', err?.message || err);
     return {
       success: false,
       message: err.message || 'Failed to push records to Supabase'
@@ -773,6 +859,7 @@ export const pushAllDataToSupabase = async (payload: {
 
 export const pullAllDataFromSupabase = async (): Promise<{
   success: boolean;
+  isTablesMissing?: boolean;
   data?: {
     items: CMSContentItem[];
     categories: CMSCategoryConfig[];
@@ -791,27 +878,53 @@ export const pullAllDataFromSupabase = async (): Promise<{
   try {
     // 1. Fetch Categories
     const { data: catData, error: catErr } = await client.from('cms_categories').select('*').order('order', { ascending: true });
-    if (catErr) throw new Error(`Categories fetch failed: ${catErr.message}`);
+    if (catErr) {
+      if (isTableMissingError(catErr)) {
+        return {
+          success: false,
+          isTablesMissing: true,
+          message: 'Database tables not found in Supabase. Please run supabase_schema.sql in your Supabase SQL Editor.'
+        };
+      }
+      throw new Error(`Categories fetch failed: ${catErr.message}`);
+    }
 
     // 2. Fetch Items
     const { data: itemData, error: itemErr } = await client.from('cms_items').select('*').order('created_at', { ascending: false });
-    if (itemErr) throw new Error(`Items fetch failed: ${itemErr.message}`);
+    if (itemErr) {
+      if (isTableMissingError(itemErr)) {
+        return {
+          success: false,
+          isTablesMissing: true,
+          message: 'Database tables not found in Supabase. Please run supabase_schema.sql in your Supabase SQL Editor.'
+        };
+      }
+      throw new Error(`Items fetch failed: ${itemErr.message}`);
+    }
 
     // 3. Fetch Collections
     const { data: colData, error: colErr } = await client.from('cms_collections').select('*');
-    if (colErr) throw new Error(`Collections fetch failed: ${colErr.message}`);
+    if (colErr && !isTableMissingError(colErr)) {
+      throw new Error(`Collections fetch failed: ${colErr.message}`);
+    }
 
     // 4. Fetch Comparisons
     const { data: compData, error: compErr } = await client.from('cms_comparisons').select('*');
-    if (compErr) throw new Error(`Comparisons fetch failed: ${compErr.message}`);
+    if (compErr && !isTableMissingError(compErr)) {
+      throw new Error(`Comparisons fetch failed: ${compErr.message}`);
+    }
 
     // 5. Fetch Media
     const { data: mediaData, error: mediaErr } = await client.from('cms_media_assets').select('*');
-    if (mediaErr) throw new Error(`Media fetch failed: ${mediaErr.message}`);
+    if (mediaErr && !isTableMissingError(mediaErr)) {
+      throw new Error(`Media fetch failed: ${mediaErr.message}`);
+    }
 
     // 6. Fetch Trends
     const { data: trendData, error: trendErr } = await client.from('cms_trends').select('*');
-    if (trendErr) throw new Error(`Trends fetch failed: ${trendErr.message}`);
+    if (trendErr && !isTableMissingError(trendErr)) {
+      throw new Error(`Trends fetch failed: ${trendErr.message}`);
+    }
 
     return {
       success: true,
@@ -826,7 +939,14 @@ export const pullAllDataFromSupabase = async (): Promise<{
       }
     };
   } catch (err: any) {
-    console.error('Supabase Pull Error:', err);
+    if (isTableMissingError(err)) {
+      return {
+        success: false,
+        isTablesMissing: true,
+        message: 'Database tables not found in Supabase. Please run supabase_schema.sql in your Supabase SQL Editor.'
+      };
+    }
+    console.warn('Supabase Pull Note:', err?.message || err);
     return {
       success: false,
       message: err.message || 'Failed to pull records from Supabase'

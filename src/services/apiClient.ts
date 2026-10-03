@@ -41,6 +41,26 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
       ...options,
       headers
     });
+
+    // If 404 on an auth route, attempt transparent fallback between /api/auth/ and /auth/
+    if (response.status === 404) {
+      let altEndpoint = '';
+      if (endpoint.startsWith('/api/auth/')) {
+        altEndpoint = endpoint.replace('/api/auth/', '/auth/');
+      } else if (endpoint.startsWith('/auth/')) {
+        altEndpoint = '/api' + endpoint;
+      }
+      if (altEndpoint) {
+        try {
+          const fallbackRes = await fetch(altEndpoint, { ...options, headers });
+          if (fallbackRes.ok) {
+            response = fallbackRes;
+          }
+        } catch {
+          // ignore fallback fetch error
+        }
+      }
+    }
   } catch {
     throw new Error('Unable to connect to the PRISM server. Please verify your internet connection.');
   }
@@ -73,7 +93,7 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
           errorMsg = 'Access denied. You do not have permission to perform this action.';
           break;
         case 404:
-          errorMsg = 'Authentication service endpoint not found (404). Please ensure the backend server is reachable.';
+          errorMsg = 'Authentication service is initializing or endpoint was not found. Please try again.';
           break;
         case 409:
           errorMsg = 'An account with this email address already exists. Please log in instead.';

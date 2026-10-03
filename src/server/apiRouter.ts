@@ -40,7 +40,7 @@ apiRouter.use(authMiddleware);
 // -------------------------------------------------------------
 // AUTHENTICATION ROUTES
 // -------------------------------------------------------------
-apiRouter.post('/auth/signup', (req: Request, res: Response) => {
+apiRouter.post(['/auth/signup', '/signup'], (req: Request, res: Response) => {
   try {
     const { name, email, password, avatar, bio } = req.body;
     if (!name || !email || !password) {
@@ -65,7 +65,7 @@ apiRouter.post('/auth/signup', (req: Request, res: Response) => {
   }
 });
 
-apiRouter.post('/auth/login', (req: Request, res: Response) => {
+apiRouter.post(['/auth/login', '/login'], (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -79,7 +79,7 @@ apiRouter.post('/auth/login', (req: Request, res: Response) => {
   }
 });
 
-apiRouter.post('/auth/logout', (req: Request, res: Response) => {
+apiRouter.post(['/auth/logout', '/logout'], (req: Request, res: Response) => {
   const token = (req as any).token;
   if (token) {
     db.logoutUser(token);
@@ -87,7 +87,7 @@ apiRouter.post('/auth/logout', (req: Request, res: Response) => {
   return res.json({ success: true, message: 'Logged out successfully.' });
 });
 
-apiRouter.get('/auth/me', (req: Request, res: Response) => {
+apiRouter.get(['/auth/me', '/me'], (req: Request, res: Response) => {
   const user = (req as any).user;
   if (!user) {
     return res.status(401).json({ error: 'Not authenticated' });
@@ -95,7 +95,7 @@ apiRouter.get('/auth/me', (req: Request, res: Response) => {
   return res.json({ user });
 });
 
-apiRouter.put('/auth/profile', requireAuth, (req: Request, res: Response) => {
+apiRouter.put(['/auth/profile', '/profile'], requireAuth, (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
     const { name, avatar, bio } = req.body;

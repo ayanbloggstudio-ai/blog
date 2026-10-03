@@ -17,6 +17,7 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
+  ArrowRight,
   MessageSquare,
   ShieldAlert,
   X,

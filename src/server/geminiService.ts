@@ -1,14 +1,62 @@
 import { GoogleGenAI, Type } from '@google/genai';
-import {
+import type {
   AIStudioFormState,
   AIGeneratedContentResult,
   AIRefineAction,
   NovelAIPayload,
   NovelAIResult,
   GeminiStatusInfo
-} from '../types/aiStudio';
+} from '../types/aiStudio.ts';
 
-const MODEL_NAME = 'gemini-3.8-flash';
+const PRIMARY_MODEL = 'gemini-3.8-flash';
+
+function formatGeminiError(err: any): string {
+  if (!err) return 'An unexpected error occurred while communicating with Gemini AI.';
+  const msg = err.message || String(err);
+  try {
+    const parsed = JSON.parse(msg);
+    if (parsed.error && parsed.error.message) {
+      if (parsed.error.code === 503) {
+        return `Gemini Service Spike (503): ${parsed.error.message}`;
+      }
+      if (parsed.error.code === 429) {
+        return `Gemini Rate Limit (429): Quota exceeded. Please wait a moment before sending another request.`;
+      }
+      return `Gemini API Error: ${parsed.error.message}`;
+    }
+  } catch {
+    // raw text
+  }
+  if (msg.includes('503') || msg.includes('high demand') || msg.includes('UNAVAILABLE')) {
+    return 'Gemini AI is currently experiencing high demand. Please retry in a few moments.';
+  }
+  if (msg.includes('429') || msg.includes('quota') || msg.includes('RESOURCE_EXHAUSTED')) {
+    return 'Gemini API quota or rate limit exceeded. Please wait a moment and retry.';
+  }
+  if (msg.includes('API_KEY_INVALID') || msg.includes('403') || msg.includes('UNAUTHENTICATED')) {
+    return 'Gemini API Key is invalid or unauthorized. Please verify the GEMINI_API_KEY environment variable.';
+  }
+  return msg;
+}
+
+async function executeWithModelFallback<T>(fn: (modelName: string) => Promise<T>): Promise<T> {
+  const models = ['gemini-3.8-flash', 'gemini-flash-latest', 'gemini-3.1-flash-lite'];
+  let lastError: any = null;
+  for (const model of models) {
+    try {
+      return await fn(model);
+    } catch (err: any) {
+      lastError = err;
+      const errorStr = String(err?.message || err);
+      if (errorStr.includes('503') || errorStr.includes('UNAVAILABLE') || errorStr.includes('not found') || errorStr.includes('404')) {
+        console.warn(`Model ${model} returned transient error, trying next supported model...`);
+        continue;
+      }
+      throw new Error(formatGeminiError(err));
+    }
+  }
+  throw new Error(formatGeminiError(lastError));
+}
 
 function getGeminiClient(): { client: GoogleGenAI; apiKey: string } {
   const apiKey = process.env.GEMINI_API_KEY || '';
@@ -33,14 +81,14 @@ export function checkGeminiStatus(): GeminiStatusInfo {
   if (!apiKey || apiKey.trim().length === 0) {
     return {
       isConfigured: false,
-      model: MODEL_NAME,
+      model: PRIMARY_MODEL,
       error: 'GEMINI_API_KEY is missing from server environment.'
     };
   }
 
   return {
     isConfigured: true,
-    model: MODEL_NAME
+    model: PRIMARY_MODEL
   };
 }
 
@@ -123,9 +171,9 @@ CRITICAL EDITORIAL RULES:
 
 Respond strictly with valid JSON conforming to the requested schema.`;
 
-  try {
+  return await executeWithModelFallback(async (modelName) => {
     const response = await client.models.generateContent({
-      model: MODEL_NAME,
+      model: modelName,
       contents: prompt,
       config: {
         systemInstruction:
@@ -293,10 +341,7 @@ Respond strictly with valid JSON conforming to the requested schema.`;
 
     const parsed: AIGeneratedContentResult = JSON.parse(text);
     return parsed;
-  } catch (err: any) {
-    console.error('Gemini generateContentStudioOutput error:', err);
-    throw new Error(err.message || 'Failed to generate content with Gemini AI.');
-  }
+  });
 }
 
 export interface RefineTextPayload {
@@ -344,9 +389,9 @@ OUTPUT REQUIREMENTS:
 - Do NOT wrap in explanatory preamble or metadata (e.g. do not say "Here is your continued text:").
 - Maintain clean markdown formatting.`;
 
-  try {
+  return await executeWithModelFallback(async (modelName) => {
     const response = await client.models.generateContent({
-      model: MODEL_NAME,
+      model: modelName,
       contents: prompt,
       config: {
         systemInstruction: 'You are an elite editorial editor. Return only the revised text directly in clean markdown.',
@@ -362,10 +407,7 @@ OUTPUT REQUIREMENTS:
       resultText: resultText.trim(),
       action
     };
-  } catch (err: any) {
-    console.error(`Gemini refineContentText (${action}) error:`, err);
-    throw new Error(err.message || `Failed to perform ${action} with Gemini AI.`);
-  }
+  });
 }
 
 export async function generateNovelContent(payload: NovelAIPayload): Promise<NovelAIResult> {
@@ -480,9 +522,9 @@ OUTPUT GUIDELINES:
 - Output only the generated novel content in clean, formatted Markdown.
 - Maintain top-tier serialization craft: pacing, momentum, dialogue, and memorable prose.`;
 
-  try {
+  return await executeWithModelFallback(async (modelName) => {
     const response = await client.models.generateContent({
-      model: MODEL_NAME,
+      model: modelName,
       contents: prompt,
       config: {
         systemInstruction: 'You are an elite web novel author and story architect. Output polished, thrilling markdown prose directly.',
@@ -499,8 +541,5 @@ OUTPUT GUIDELINES:
       type,
       novelTitle
     };
-  } catch (err: any) {
-    console.error(`Gemini generateNovelContent (${type}) error:`, err);
-    throw new Error(err.message || `Failed to generate novel ${type} with Gemini AI.`);
-  }
+  });
 }

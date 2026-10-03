@@ -50,7 +50,7 @@ export const AdminSupabase: React.FC = () => {
   const [isTesting, setIsTesting] = useState(false);
   const [isPushing, setIsPushing] = useState(false);
   const [isPulling, setIsPulling] = useState(false);
-  const [actionFeedback, setActionFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [actionFeedback, setActionFeedback] = useState<{ type: 'success' | 'error' | 'warning'; message: string } | null>(null);
   const [copiedSQL, setCopiedSQL] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'schema' | 'tables' | 'settings'>('overview');
 
@@ -61,10 +61,17 @@ export const AdminSupabase: React.FC = () => {
       const res = await checkSupabaseConnection();
       setStatus(res);
       if (res.connected) {
-        setActionFeedback({
-          type: 'success',
-          message: `Connected successfully to Supabase! Latency: ${res.latencyMs}ms`
-        });
+        if (!res.tablesInitialized) {
+          setActionFeedback({
+            type: 'warning',
+            message: `Connected to Supabase (${res.latencyMs}ms), but database tables have not been created yet. Copy and run the SQL schema in your Supabase SQL Editor.`
+          });
+        } else {
+          setActionFeedback({
+            type: 'success',
+            message: `Connected successfully to Supabase! Latency: ${res.latencyMs}ms`
+          });
+        }
       } else if (!res.configured) {
         setActionFeedback({
           type: 'error',
@@ -121,6 +128,12 @@ export const AdminSupabase: React.FC = () => {
           message: res.message
         });
         testConnection();
+      } else if (res.isTablesMissing) {
+        setActionFeedback({
+          type: 'warning',
+          message: res.message
+        });
+        setActiveTab('schema');
       } else {
         setActionFeedback({
           type: 'error',
@@ -152,6 +165,12 @@ export const AdminSupabase: React.FC = () => {
           message: `Pulled ${res.data.items.length} items and ${res.data.categories.length} categories from Supabase!`
         });
         testConnection();
+      } else if (res.isTablesMissing) {
+        setActionFeedback({
+          type: 'warning',
+          message: res.message
+        });
+        setActiveTab('schema');
       } else {
         setActionFeedback({
           type: 'error',
@@ -262,26 +281,44 @@ export const AdminSupabase: React.FC = () => {
       {/* Action feedback toast banner */}
       {actionFeedback && (
         <div
-          className={`p-4 rounded-2xl border flex items-center justify-between gap-3 text-sm font-medium transition-all ${
+          className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm font-medium transition-all ${
             actionFeedback.type === 'success'
               ? 'bg-emerald-950/70 border-emerald-700 text-emerald-300'
+              : actionFeedback.type === 'warning'
+              ? 'bg-amber-950/70 border-amber-700 text-amber-300'
               : 'bg-rose-950/70 border-rose-700 text-rose-300'
           }`}
         >
           <div className="flex items-center gap-2.5">
             {actionFeedback.type === 'success' ? (
               <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+            ) : actionFeedback.type === 'warning' ? (
+              <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
             ) : (
               <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0" />
             )}
             <span>{actionFeedback.message}</span>
           </div>
-          <button
-            onClick={() => setActionFeedback(null)}
-            className="text-xs opacity-70 hover:opacity-100 hover:underline"
-          >
-            Dismiss
-          </button>
+          <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+            {actionFeedback.type === 'warning' && (
+              <button
+                type="button"
+                onClick={() => {
+                  handleCopySQL();
+                  setActiveTab('schema');
+                }}
+                className="px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-zinc-950 text-xs font-bold shrink-0 transition-colors"
+              >
+                Copy SQL & Open Schema
+              </button>
+            )}
+            <button
+              onClick={() => setActionFeedback(null)}
+              className="text-xs opacity-70 hover:opacity-100 hover:underline px-2 py-1"
+            >
+              Dismiss
+            </button>
+          </div>
         </div>
       )}
 

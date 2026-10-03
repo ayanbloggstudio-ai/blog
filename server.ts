@@ -36,26 +36,13 @@ async function startServer() {
     });
   });
 
-  // AI Content Studio Generator Route
-  app.post('/api/gemini/generate-content', async (req, res) => {
-    try {
-      const payload = req.body;
-      if (!payload || !payload.topic) {
-        return res.status(400).json({ error: 'Topic is required' });
-      }
-      const result = await generateContentStudioOutput(payload);
-      return res.json(result);
-    } catch (error: any) {
-      console.error('Server error generating AI content:', error);
-      return res.status(500).json({ error: error?.message || 'Failed to generate content' });
-    }
-  });
-
-  // Mount unified real backend API router
+  // Mount unified real backend API router under /api, /api/v1, and /auth
   app.use('/api', apiRouter);
+  app.use('/api/v1', apiRouter);
+  app.use('/auth', apiRouter);
 
   // Catch-all for unmatched /api routes to prevent HTML 404 fallback
-  app.all('/api/*', (req, res) => {
+  app.all(['/api', '/api/*'], (req, res) => {
     res.status(404).json({
       error: `API route '${req.method} ${req.originalUrl}' not found.`,
       status: 404
