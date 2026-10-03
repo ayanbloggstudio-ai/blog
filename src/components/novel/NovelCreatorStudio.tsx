@@ -24,6 +24,7 @@ import { NovelItem, NovelSubmissionStatus, NovelContentType } from '../../types/
 import { useNovels } from '../../context/NovelContext';
 import { useDiscovery } from '../../context/DiscoveryContext';
 import { NOVEL_GENRES, MANGA_GENRES } from '../../data/novelData';
+import { ImageUploadField } from '../ImageUploadField';
 
 export const NovelCreatorStudio: React.FC = () => {
   const { allSubmissions, submitNovel, openNovel } = useNovels();
@@ -278,22 +279,21 @@ export const NovelCreatorStudio: React.FC = () => {
 
           {/* Cover Image Selector */}
           <div className="space-y-2">
-            <label className="text-xs font-bold text-zinc-300">Cover Artwork URL or Quick Preset</label>
-            <input
-              type="url"
+            <ImageUploadField
+              label="Cover Artwork"
               value={coverImage}
-              onChange={(e) => setCoverImage(e.target.value)}
-              placeholder="https://images.unsplash.com/... or choose preset below"
-              className="w-full px-4 py-2.5 rounded-xl bg-zinc-950 border border-zinc-800 text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500"
+              onChange={setCoverImage}
+              aspectRatio="portrait"
+              helperText="Upload your custom illustration or select a preset below."
             />
             <div className="flex flex-wrap items-center gap-2 pt-1">
-              <span className="text-xs text-zinc-500">Curated Presets:</span>
+              <span className="text-xs text-zinc-500">Or pick curated preset:</span>
               {coverPresets.map((preset) => (
                 <button
                   key={preset.label}
                   type="button"
                   onClick={() => setCoverImage(preset.url)}
-                  className={`px-3 py-1 rounded-lg text-xs font-medium border transition-colors ${
+                  className={`px-3 py-1 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
                     coverImage === preset.url
                       ? 'bg-indigo-600 text-white border-indigo-500'
                       : 'bg-zinc-950 text-zinc-400 hover:text-white border-zinc-800'

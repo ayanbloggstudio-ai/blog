@@ -43,6 +43,7 @@ import { NovelAIGenerateType } from '../../types/aiStudio';
 import { requestNovelGeneration } from '../../services/aiContentStudioService';
 import { EmptyState } from '../../components/EmptyState';
 import { SafeImage } from '../../components/SafeImage';
+import { ImageUploadField } from '../../components/ImageUploadField';
 
 export const AdminNovelManager: React.FC = () => {
   const {
@@ -1033,26 +1034,20 @@ export const AdminNovelManager: React.FC = () => {
 
               {/* Cover & Banner Image */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-zinc-300 mb-1.5">Cover Image URL</label>
-                  <input
-                    type="url"
-                    value={seriesForm.coverImage || ''}
-                    onChange={(e) => setSeriesForm({ ...seriesForm, coverImage: e.target.value })}
-                    placeholder="https://..."
-                    className="w-full px-3.5 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-white focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-zinc-300 mb-1.5">Banner Image URL (Optional)</label>
-                  <input
-                    type="url"
-                    value={seriesForm.bannerImage || ''}
-                    onChange={(e) => setSeriesForm({ ...seriesForm, bannerImage: e.target.value })}
-                    placeholder="https://..."
-                    className="w-full px-3.5 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-white focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
+                <ImageUploadField
+                  label="Series Cover Image"
+                  value={seriesForm.coverImage || ''}
+                  onChange={(val) => setSeriesForm({ ...seriesForm, coverImage: val })}
+                  aspectRatio="portrait"
+                  helperText="Upload novel cover illustration or enter an image URL."
+                />
+                <ImageUploadField
+                  label="Banner Image (Optional)"
+                  value={seriesForm.bannerImage || ''}
+                  onChange={(val) => setSeriesForm({ ...seriesForm, bannerImage: val })}
+                  aspectRatio="video"
+                  helperText="Upload wide banner background or enter image URL."
+                />
               </div>
 
               {/* Short & Full Description */}

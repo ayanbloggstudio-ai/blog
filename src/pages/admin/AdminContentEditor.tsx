@@ -15,12 +15,14 @@ import {
   Plus,
   Trash2,
   FileText,
-  DollarSign
+  DollarSign,
+  UploadCloud
 } from 'lucide-react';
 import { useCMS } from '../../context/CMSContext';
 import { useDiscovery } from '../../context/DiscoveryContext';
 import { CMSContentItem, ContentLifecycleStatus, CMSContentType } from '../../types/cms';
 import { BestForLabel } from '../../types/directory';
+import { ImageUploadField } from '../../components/ImageUploadField';
 
 export const AdminContentEditor: React.FC = () => {
   const {
@@ -570,33 +572,46 @@ export const AdminContentEditor: React.FC = () => {
               </button>
             </div>
 
-            <div>
-              <label className="text-[11px] font-semibold text-zinc-400 block mb-1">
-                Cover Image URL *
-              </label>
-              <input
-                type="url"
-                placeholder="https://images.unsplash.com/..."
-                value={coverImage}
-                onChange={(e) => setCoverImage(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-zinc-900 text-xs text-white border border-zinc-800 focus:outline-none focus:border-emerald-500 font-mono"
-              />
-            </div>
+            {/* Cover Image Upload & URL */}
+            <ImageUploadField
+              label="Cover Image"
+              required
+              value={coverImage}
+              onChange={setCoverImage}
+              aspectRatio="video"
+              helperText="Upload image directly from your computer/device or paste an image URL."
+            />
 
-            {/* Visual preview */}
-            {coverImage && (
-              <div className="relative aspect-video rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800">
-                <img src={coverImage} alt="Preview" className="w-full h-full object-cover" />
+            <div className="space-y-1.5 pt-1">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-semibold text-zinc-400 block">
+                  Gallery Images (One URL/Data per line)
+                </label>
+                <label className="text-[10px] text-emerald-400 hover:text-emerald-300 font-semibold cursor-pointer flex items-center gap-1 transition-colors">
+                  <UploadCloud className="w-3 h-3" />
+                  <span>Upload File</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        const file = e.target.files[0];
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                          const res = reader.result as string;
+                          setGalleryImagesText((prev) => (prev.trim() ? `${prev.trim()}\n${res}` : res));
+                          showToast('Gallery image uploaded.', 'success');
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  />
+                </label>
               </div>
-            )}
-
-            <div>
-              <label className="text-[11px] font-semibold text-zinc-400 block mb-1">
-                Gallery Images (One URL per line)
-              </label>
               <textarea
                 rows={2}
-                placeholder="https://...\nhttps://..."
+                placeholder="https://...\ndata:image/jpeg;base64,..."
                 value={galleryImagesText}
                 onChange={(e) => setGalleryImagesText(e.target.value)}
                 className="w-full p-2.5 rounded-xl bg-zinc-900 text-xs text-white border border-zinc-800 focus:outline-none focus:border-emerald-500 font-mono"

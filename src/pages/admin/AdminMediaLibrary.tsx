@@ -12,6 +12,7 @@ import { useCMS } from '../../context/CMSContext';
 import { useDiscovery } from '../../context/DiscoveryContext';
 import { EmptyState } from '../../components/EmptyState';
 import { SafeImage } from '../../components/SafeImage';
+import { ImageUploadField } from '../../components/ImageUploadField';
 
 export const AdminMediaLibrary: React.FC = () => {
   const { mediaAssets, addMediaAsset, deleteMediaAsset, categories } = useCMS();
@@ -78,19 +79,14 @@ export const AdminMediaLibrary: React.FC = () => {
         <div className="p-6 rounded-3xl bg-[#0b0e15] border border-zinc-800 space-y-4">
           <h3 className="text-base font-bold text-white">Add Image to Media Library</h3>
           <form onSubmit={handleAddSubmit} className="space-y-4">
-            <div>
-              <label className="text-xs font-semibold text-zinc-300 block mb-1">
-                Image URL *
-              </label>
-              <input
-                type="url"
-                placeholder="https://images.unsplash.com/..."
-                value={newUrl}
-                onChange={(e) => setNewUrl(e.target.value)}
-                required
-                className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 text-xs text-white border border-zinc-800 focus:outline-none focus:border-emerald-500 font-mono"
-              />
-            </div>
+            <ImageUploadField
+              label="Media Image"
+              required
+              value={newUrl}
+              onChange={setNewUrl}
+              aspectRatio="video"
+              helperText="Upload image from computer/device or enter an external image URL."
+            />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>

@@ -35,6 +35,7 @@ import {
 import { DIGITAL_CATEGORIES, PHYSICAL_CATEGORIES } from '../../data/communityProductsData';
 import { EmptyState } from '../../components/EmptyState';
 import { SafeImage } from '../../components/SafeImage';
+import { ImageUploadField } from '../../components/ImageUploadField';
 
 export const AdminCommunityProducts: React.FC = () => {
   const {
@@ -734,26 +735,20 @@ export const AdminCommunityProducts: React.FC = () => {
 
               {/* Images */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-zinc-300 mb-1.5">Cover Image URL</label>
-                  <input
-                    type="url"
-                    value={formData.image || ''}
-                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    placeholder="https://..."
-                    className="w-full px-3.5 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-white focus:outline-none focus:border-emerald-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-zinc-300 mb-1.5">Logo URL (Optional)</label>
-                  <input
-                    type="url"
-                    value={formData.logo || ''}
-                    onChange={(e) => setFormData({ ...formData, logo: e.target.value })}
-                    placeholder="https://..."
-                    className="w-full px-3.5 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-white focus:outline-none focus:border-emerald-500"
-                  />
-                </div>
+                <ImageUploadField
+                  label="Product Cover Image"
+                  value={formData.image || ''}
+                  onChange={(val) => setFormData({ ...formData, image: val })}
+                  aspectRatio="video"
+                  helperText="Upload image file or paste product screenshot URL."
+                />
+                <ImageUploadField
+                  label="Product Logo (Optional)"
+                  value={formData.logo || ''}
+                  onChange={(val) => setFormData({ ...formData, logo: val })}
+                  aspectRatio="square"
+                  helperText="Upload square logo file or paste icon URL."
+                />
               </div>
 
               {/* URLs & Affiliate */}
