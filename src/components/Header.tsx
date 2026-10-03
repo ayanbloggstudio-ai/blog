@@ -16,9 +16,7 @@ import {
   Sun,
   Moon,
   User as UserIcon,
-  LogIn,
   LogOut,
-  Shield,
   ChevronDown
 } from 'lucide-react';
 import { useDiscovery } from '../context/DiscoveryContext';
@@ -40,9 +38,9 @@ export const Header: React.FC = () => {
     resetFeed
   } = useDiscovery();
 
-  const { getPublicCategories, setIsAdminViewOpen } = useCMS();
+  const { getPublicCategories } = useCMS();
   const { resolvedTheme, toggleTheme } = useTheme();
-  const { user, isAdmin, openAuthModal, logout } = useAuth();
+  const { user, logout } = useAuth();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -256,8 +254,8 @@ export const Header: React.FC = () => {
             )}
           </button>
 
-          {/* User Account / Authentication */}
-          {user ? (
+          {/* User Account (Active session only - no sign in prompt above) */}
+          {user && (
             <div className="relative">
               <button
                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}
@@ -269,11 +267,6 @@ export const Header: React.FC = () => {
                   className="w-5 h-5 rounded-full object-cover bg-zinc-800 shrink-0"
                 />
                 <span className="hidden sm:inline max-w-[80px] truncate">{user.name.split(' ')[0]}</span>
-                {isAdmin && (
-                  <span className="hidden md:inline text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-300 border border-emerald-800/60 uppercase">
-                    Admin
-                  </span>
-                )}
                 <ChevronDown className="w-3 h-3 text-zinc-500" />
               </button>
 
@@ -292,19 +285,6 @@ export const Header: React.FC = () => {
                       </span>
                     </div>
                   </div>
-
-                  {isAdmin && (
-                    <button
-                      onClick={() => {
-                        setUserDropdownOpen(false);
-                        setIsAdminViewOpen(true);
-                      }}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-emerald-400 hover:bg-emerald-950/40 transition-colors text-left cursor-pointer"
-                    >
-                      <Shield className="w-3.5 h-3.5" />
-                      <span>Admin CMS Console</span>
-                    </button>
-                  )}
 
                   <button
                     onClick={() => {
@@ -343,15 +323,6 @@ export const Header: React.FC = () => {
                 </div>
               )}
             </div>
-          ) : (
-            <button
-              onClick={() => openAuthModal('login')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-xs shadow-md shadow-emerald-500/20 transition-all cursor-pointer shrink-0"
-              title="Sign in to your PRISM account"
-            >
-              <LogIn className="w-3.5 h-3.5" />
-              <span>Sign In</span>
-            </button>
           )}
 
           {/* Mobile Navigation Menu Toggle */}
@@ -521,54 +492,30 @@ export const Header: React.FC = () => {
               </button>
             </div>
 
-            {/* Mobile Auth Button */}
-            {user ? (
+            {/* Mobile User Profile (Active session only - no sign in button) */}
+            {user && (
               <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <img
-                      src={user.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(user.name)}`}
-                      alt={user.name}
-                      className="w-7 h-7 rounded-full object-cover bg-zinc-800"
-                    />
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-white truncate">{user.name}</p>
-                      <span className="text-[10px] text-zinc-400 capitalize">{user.role}</span>
-                    </div>
+                <div className="flex items-center gap-2">
+                  <img
+                    src={user.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(user.name)}`}
+                    alt={user.name}
+                    className="w-7 h-7 rounded-full object-cover bg-zinc-800"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-white truncate">{user.name}</p>
+                    <span className="text-[10px] text-zinc-400 truncate block">{user.email}</span>
                   </div>
-                  {isAdmin && (
-                    <button
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        setIsAdminViewOpen(true);
-                      }}
-                      className="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold"
-                    >
-                      Admin
-                    </button>
-                  )}
                 </div>
                 <button
                   onClick={async () => {
                     setMobileMenuOpen(false);
                     await logout();
                   }}
-                  className="w-full py-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-bold text-center"
+                  className="w-full py-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-bold text-center cursor-pointer"
                 >
                   Sign Out
                 </button>
               </div>
-            ) : (
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  openAuthModal('login');
-                }}
-                className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/20"
-              >
-                <LogIn className="w-4 h-4" />
-                <span>Sign In / Create Account</span>
-              </button>
             )}
           </div>
         </div>

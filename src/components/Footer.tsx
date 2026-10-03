@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowUp, Sparkles, Compass, LayoutDashboard } from 'lucide-react';
+import { ArrowUp, Sparkles, Compass, LayoutDashboard, Shield } from 'lucide-react';
 import { useDiscovery } from '../context/DiscoveryContext';
 import { useCMS } from '../context/CMSContext';
 import { PageRoute } from '../types/discovery';
@@ -125,17 +125,22 @@ export const Footer: React.FC = () => {
           </div>
         </div>
 
-        {/* Bottom copyright row */}
+        {/* Bottom copyright row with dedicated Admin Access */}
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-400">
           <div>
             © {new Date().getFullYear()} Prism Visual Discovery. All curated media assets property of their respective creators.
           </div>
-          <div className="flex items-center gap-4">
-            <button onClick={() => setIsAdminViewOpen(true)} className="text-zinc-400 hover:text-white">
-              CMS Admin
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsAdminViewOpen(true)}
+              className="px-2.5 py-1 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 text-zinc-400 hover:text-emerald-400 border border-zinc-800/80 transition-colors flex items-center gap-1.5 font-medium cursor-pointer"
+              title="Open PRISM Administrator CMS Console"
+            >
+              <Shield className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Admin Access</span>
             </button>
-            <span>•</span>
-            <button onClick={scrollToTop} className="text-emerald-400 hover:underline">
+            <span className="text-zinc-700">•</span>
+            <button onClick={scrollToTop} className="text-emerald-400 hover:underline cursor-pointer">
               Scroll Top ↑
             </button>
           </div>
