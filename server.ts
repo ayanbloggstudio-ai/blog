@@ -16,6 +16,18 @@ const PORT = process.env.DEFAULT_APP_PORT || (process.env.PORT === '8080' ? 3000
 async function startServer() {
   const app = express();
 
+  // CORS middleware for iframe preview, web embed, and cross-origin fetch
+  app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    if (req.method === 'OPTIONS') {
+      return res.sendStatus(204);
+    }
+    next();
+  });
+
   app.use(express.json({ limit: '10mb' }));
 
   // Health check
@@ -36,13 +48,16 @@ async function startServer() {
     });
   });
 
-  // Mount unified real backend API router under /api, /api/v1, and /auth
+  // Mount unified real backend API router under /api, /api/v1, /api/auth, and /auth
   app.use('/api', apiRouter);
   app.use('/api/v1', apiRouter);
   app.use('/auth', apiRouter);
 
   // Catch-all for unmatched /api routes to prevent HTML 404 fallback
   app.all(['/api', '/api/*'], (req, res) => {
+    if (req.method === 'OPTIONS') {
+      return res.sendStatus(204);
+    }
     res.status(404).json({
       error: `API route '${req.method} ${req.originalUrl}' not found.`,
       status: 404

@@ -13,6 +13,8 @@ interface AuthContextType {
   openAuthModal: (mode?: 'login' | 'signup') => void;
   closeAuthModal: () => void;
   login: (email: string, pass: string) => Promise<boolean>;
+  quickAdminLogin: () => Promise<boolean>;
+  claimAdmin: () => Promise<boolean>;
   signup: (name: string, email: string, pass: string, bio?: string) => Promise<boolean>;
   logout: () => Promise<void>;
   updateProfile: (updates: { name?: string; avatar?: string; bio?: string }) => Promise<boolean>;
@@ -92,6 +94,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const quickAdminLogin = async (): Promise<boolean> => {
+    setAuthError(null);
+    try {
+      const res = await apiClient.quickAdminLogin();
+      setUser(res.user);
+      setTokenState(res.token);
+      setIsAuthModalOpen(false);
+      return true;
+    } catch (err: any) {
+      setAuthError(err.message || 'Admin authentication failed. Please verify the server is running.');
+      return false;
+    }
+  };
+
+  const claimAdmin = async (): Promise<boolean> => {
+    setAuthError(null);
+    try {
+      const res = await apiClient.claimAdmin();
+      if (res.user) {
+        setUser(res.user);
+      }
+      return true;
+    } catch (err: any) {
+      setAuthError(err.message || 'Failed to claim administrator role.');
+      return false;
+    }
+  };
+
   const signup = async (name: string, email: string, pass: string, bio?: string): Promise<boolean> => {
     setAuthError(null);
     try {
@@ -144,6 +174,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         openAuthModal,
         closeAuthModal,
         login,
+        quickAdminLogin,
+        claimAdmin,
         signup,
         logout,
         updateProfile,

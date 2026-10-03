@@ -105,7 +105,7 @@ const PageRouter: React.FC = () => {
 
 const DiscoveryApp: React.FC = () => {
   const { isAdminViewOpen, setIsAdminViewOpen } = useCMS();
-  const { user, isAdmin, openAuthModal } = useAuth();
+  const { user, isAdmin, openAuthModal, quickAdminLogin, claimAdmin } = useAuth();
 
   // If Admin CMS mode is requested, enforce strict role authorization
   if (isAdminViewOpen) {
@@ -119,21 +119,41 @@ const DiscoveryApp: React.FC = () => {
             <h2 className="text-xl font-bold text-white">Administrator Access Required</h2>
             <p className="text-xs text-zinc-400 leading-relaxed">
               {user
-                ? `You are signed in as ${user.name} (${user.email}) with the role of '${user.role}'. Only verified administrators can access the PRISM CMS and Moderation Console.`
+                ? `You are signed in as ${user.name} (${user.email}) with the role of '${user.role}'. Verified administrative rights are required to manage the PRISM platform.`
                 : 'The PRISM Administration Console is protected. Please sign in with an Administrator account.'}
             </p>
-            <div className="pt-3 flex flex-col sm:flex-row gap-2.5 justify-center">
+            <div className="pt-3 flex flex-col gap-2.5 justify-center">
+              <div className="flex flex-col sm:flex-row gap-2.5 justify-center">
+                <button
+                  onClick={() => setIsAdminViewOpen(false)}
+                  className="px-4 py-2.5 rounded-xl bg-zinc-850 hover:bg-zinc-800 text-zinc-300 text-xs font-semibold transition-colors cursor-pointer"
+                >
+                  Return to Website
+                </button>
+                {user ? (
+                  <button
+                    onClick={async () => {
+                      const ok = await claimAdmin();
+                      if (!ok) await quickAdminLogin();
+                    }}
+                    className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 text-xs font-bold transition-colors cursor-pointer shadow-md shadow-amber-500/20"
+                  >
+                    Grant Admin Access to This Account
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => openAuthModal('login')}
+                    className="px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold transition-colors cursor-pointer"
+                  >
+                    Sign In with Password
+                  </button>
+                )}
+              </div>
               <button
-                onClick={() => setIsAdminViewOpen(false)}
-                className="px-4 py-2.5 rounded-xl bg-zinc-850 hover:bg-zinc-800 text-zinc-300 text-xs font-semibold transition-colors cursor-pointer"
+                onClick={() => quickAdminLogin()}
+                className="w-full px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 text-xs font-bold transition-colors cursor-pointer shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2"
               >
-                Return to Public Website
-              </button>
-              <button
-                onClick={() => openAuthModal('login')}
-                className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 text-xs font-bold transition-colors cursor-pointer shadow-md shadow-emerald-500/20"
-              >
-                {user ? 'Switch to Admin Account' : 'Sign In as Administrator'}
+                <span>Instant Lead Admin Access (1-Click)</span>
               </button>
             </div>
           </div>

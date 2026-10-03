@@ -10,6 +10,7 @@ export const AuthModal: React.FC = () => {
     authModalMode,
     openAuthModal,
     login,
+    quickAdminLogin,
     signup,
     authError,
     clearAuthError
@@ -251,21 +252,41 @@ export const AuthModal: React.FC = () => {
           </button>
         </form>
 
-        {/* Demo Administrator Auto-Fill Hint */}
+        {/* Administrator Fast Access */}
         {authModalMode === 'login' && (
-          <div className="pt-2 border-t border-zinc-800/80 text-center">
-            <div className="flex items-center justify-between text-xs text-zinc-400 bg-zinc-900/50 p-2.5 rounded-xl border border-zinc-800">
-              <span className="flex items-center gap-1.5 text-zinc-400 text-[11px]">
-                <Shield className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Testing Admin role?</span>
+          <div className="pt-2 border-t border-zinc-800/80 text-center space-y-2">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-zinc-400 bg-zinc-900/60 p-2.5 rounded-xl border border-zinc-800">
+              <span className="flex items-center gap-1.5 text-zinc-300 text-[11px] font-medium">
+                <Shield className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span>Admin Console Access:</span>
               </span>
-              <button
-                type="button"
-                onClick={handleFillAdmin}
-                className="text-[11px] font-bold text-emerald-400 hover:text-emerald-300 underline cursor-pointer"
-              >
-                Auto-fill Admin
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleFillAdmin}
+                  className="text-[11px] font-medium text-zinc-400 hover:text-zinc-200 underline cursor-pointer"
+                >
+                  Fill Credentials
+                </button>
+                <button
+                  type="button"
+                  disabled={isSubmitting}
+                  onClick={async () => {
+                    setIsSubmitting(true);
+                    try {
+                      const ok = await quickAdminLogin();
+                      if (ok) {
+                        showToast('Signed in successfully as Administrator.', 'success');
+                      }
+                    } finally {
+                      setIsSubmitting(false);
+                    }
+                  }}
+                  className="px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/30 text-[11px] font-bold transition-colors cursor-pointer"
+                >
+                  Instant Admin Login
+                </button>
+              </div>
             </div>
           </div>
         )}

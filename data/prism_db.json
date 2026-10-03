@@ -49,10 +49,38 @@
       "passwordHash": "0d5d49540f5d6f4e4e1900d6c8cdcb004476c5abe54861b3c8fd22b774c95fc3bd54bb0a3c58e7eb9f18cacec34175dca37c53fa6924c8b5233b3c6396cf1bac",
       "passwordSalt": "717a5776374582acb7b34b0282ba3e6e",
       "avatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Ayan%20Studio",
-      "role": "member",
+      "role": "admin",
+      "status": "active",
+      "bio": "PRISM Lead Platform Owner",
+      "joinedDate": "2026-09-30",
+      "contributionsCount": 0,
+      "warningsCount": 0
+    },
+    {
+      "id": "user-admin-ayan-owner",
+      "name": "Ayan (Owner)",
+      "email": "ayanbloggstudio@gmail.com",
+      "passwordHash": "4e9a3b94941ebbe5aba0d41dd5959e83bc15adbbe9a0ce405c0f8c47c0f07b2044763a4e0ee53ca4eac2f431724d05f252775403fac617ae31e00a3ad33c4891",
+      "passwordSalt": "62afd5201edc480213ef03e1c2f8fa8f",
+      "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "role": "admin",
+      "status": "active",
+      "bio": "PRISM Lead Platform Owner",
+      "joinedDate": "2026-10-01",
+      "contributionsCount": 0,
+      "warningsCount": 0
+    },
+    {
+      "id": "usr-1791034867198-2psbh",
+      "name": "Test User",
+      "email": "testmember_@example.com",
+      "passwordHash": "84dd72e2242d5b394b8d60114fb89f1858fda24159d229b1820005eccdb7c46acd2bf8668011d47c74ee29bef7cf3d6ab33d68c210524696aa7a554db65c89ce",
+      "passwordSalt": "e01ce254d90854d489345d93d3c3d96b",
+      "avatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Test%20User",
+      "role": "admin",
       "status": "active",
       "bio": "",
-      "joinedDate": "2026-09-30",
+      "joinedDate": "2026-10-03",
       "contributionsCount": 0,
       "warningsCount": 0
     }
@@ -134,13 +162,6 @@
       "role": "admin",
       "createdAt": "2026-09-30T16:30:09.990Z",
       "expiresAt": "2026-10-30T16:30:09.990Z"
-    },
-    {
-      "token": "token-1cec86ace752847fed258e916f48425680fd9a7eedbdc200ead528682cd9f452",
-      "userId": "user-admin-01",
-      "role": "admin",
-      "createdAt": "2026-09-30T16:32:44.619Z",
-      "expiresAt": "2026-10-30T16:32:44.619Z"
     },
     {
       "token": "token-d984c9e33e1463cb6371c5dfe3faa35e91b397ea2105a811be5e6bc1b0c29403",
@@ -260,6 +281,55 @@
       "role": "admin",
       "createdAt": "2026-10-03T13:30:16.103Z",
       "expiresAt": "2026-11-02T13:30:16.103Z"
+    },
+    {
+      "token": "token-06de2f77992e3dcc22214d995fe2bb4c4a68e36eaafd9d457d0099cab48df3da",
+      "userId": "user-admin-01",
+      "role": "admin",
+      "createdAt": "2026-10-03T13:30:35.806Z",
+      "expiresAt": "2026-11-02T13:30:35.806Z"
+    },
+    {
+      "token": "token-9b65bd8da2de5bb0f498979c0833a9328df898ae5d05d9b1bbd84d52e714db4a",
+      "userId": "user-admin-01",
+      "role": "admin",
+      "createdAt": "2026-10-03T13:36:37.446Z",
+      "expiresAt": "2026-11-02T13:36:37.446Z"
+    },
+    {
+      "token": "token-6c34ccaf0df049b2707b994755be11cd1e75f895568adc371e71096a2fd33fad",
+      "userId": "user-admin-01",
+      "role": "admin",
+      "createdAt": "2026-10-03T13:37:20.779Z",
+      "expiresAt": "2026-11-02T13:37:20.779Z"
+    },
+    {
+      "token": "token-20d748a36cfe237047ed8e8ac7178b83bb4b14cc592627649570ac4431a80b6d",
+      "userId": "user-admin-01",
+      "role": "admin",
+      "createdAt": "2026-10-03T13:40:46.955Z",
+      "expiresAt": "2026-11-02T13:40:46.955Z"
+    },
+    {
+      "token": "token-37c561aa9a37e72fd531de0d0f4093eb1f95ee09aa66b324be2e3736851f0d21",
+      "userId": "user-admin-01",
+      "role": "admin",
+      "createdAt": "2026-10-03T13:40:53.289Z",
+      "expiresAt": "2026-11-02T13:40:53.289Z"
+    },
+    {
+      "token": "token-2cbe164b6d498dc21976a08ac178776bfb88460f1124231e47124e7815778bc4",
+      "userId": "user-admin-ayan-owner",
+      "role": "admin",
+      "createdAt": "2026-10-03T13:40:58.942Z",
+      "expiresAt": "2026-11-02T13:40:58.942Z"
+    },
+    {
+      "token": "token-3fabffeb226259ff75efa78932098aa588bfd3c3449d3916d975fc6059cac173",
+      "userId": "usr-1791034867198-2psbh",
+      "role": "admin",
+      "createdAt": "2026-10-03T13:41:07.198Z",
+      "expiresAt": "2026-11-02T13:41:07.198Z"
     }
   ],
   "products": [

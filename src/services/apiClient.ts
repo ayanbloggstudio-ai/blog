@@ -140,6 +140,30 @@ export const apiClient = {
     return res;
   },
 
+  async quickAdminLogin() {
+    try {
+      const res = await apiRequest<{ user: CommunityUser; token: string }>('/api/auth/quick-admin-login', {
+        method: 'POST'
+      });
+      setAuthToken(res.token);
+      return res;
+    } catch {
+      // Fallback: Attempt standard login with default admin credentials
+      const res = await apiRequest<{ user: CommunityUser; token: string }>('/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email: 'admin@prism.io', password: 'PrismAdmin2026!' })
+      });
+      setAuthToken(res.token);
+      return res;
+    }
+  },
+
+  async claimAdmin() {
+    return apiRequest<{ user: CommunityUser; success: boolean }>('/api/auth/claim-admin', {
+      method: 'POST'
+    });
+  },
+
   async logout() {
     try {
       await apiRequest('/api/auth/logout', { method: 'POST' });

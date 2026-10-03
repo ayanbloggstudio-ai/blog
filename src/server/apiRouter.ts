@@ -37,9 +37,36 @@ function requireAdmin(req: Request, res: Response, next: NextFunction) {
 
 apiRouter.use(authMiddleware);
 
+// Handle preflight OPTIONS on all router endpoints
+apiRouter.use((req: Request, res: Response, next: NextFunction) => {
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
+
 // -------------------------------------------------------------
 // AUTHENTICATION ROUTES
 // -------------------------------------------------------------
+apiRouter.post(['/auth/quick-admin-login', '/quick-admin-login', '/auth/admin-login', '/admin-login'], (req: Request, res: Response) => {
+  try {
+    const result = db.quickAdminLogin();
+    return res.json(result);
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Failed to authenticate admin session.' });
+  }
+});
+
+apiRouter.post(['/auth/claim-admin', '/claim-admin'], requireAuth, (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    const updated = db.claimAdminRole(user.id);
+    return res.json({ user: updated, success: true });
+  } catch (err: any) {
+    return res.status(400).json({ error: err.message || 'Failed to claim administrator role.' });
+  }
+});
+
 apiRouter.post(['/auth/signup', '/signup'], (req: Request, res: Response) => {
   try {
     const { name, email, password, avatar, bio } = req.body;
@@ -636,6 +663,9 @@ apiRouter.post('/gemini/generate-novel', requireAdmin, async (req: Request, res:
 
 // 404 Handler for undefined API routes
 apiRouter.all('*', (req: Request, res: Response) => {
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
   res.status(404).json({
     error: `API endpoint '${req.method} ${req.originalUrl}' was not found. Please verify the endpoint URL.`,
     status: 404
