@@ -36,7 +36,6 @@ import { SearchPage } from './pages/SearchPage';
 import { DirectoryIndexPage } from './pages/DirectoryIndexPage';
 import { DirectoryItemDetailPage } from './pages/DirectoryItemDetailPage';
 import { CuratedListPage } from './pages/CuratedListPage';
-import { ComparisonPage } from './pages/ComparisonPage';
 
 // Community Layer Page
 import { CommunityFeedPage } from './pages/CommunityFeedPage';
@@ -88,7 +87,7 @@ const PageRouter: React.FC = () => {
     case 'curated-list':
       return <CuratedListPage />;
     case 'compare':
-      return <ComparisonPage />;
+      return <DirectoryIndexPage initialCategory="all" />;
 
     // Community Layer
     case 'community':

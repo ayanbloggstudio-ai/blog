@@ -603,10 +603,10 @@ export const AnalyticsProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       {
         id: 'chk-6',
         category: 'discovery_flow',
-        name: 'Side-by-Side Comparison Matrix',
-        targetViewOrFeature: 'Comparisons View',
-        status: (comparisons || []).length > 0 ? 'passed' : 'warning',
-        details: `${(comparisons || []).length} comparison pairs verified with feature matrices.`
+        name: 'Structured Directory Taxonomy',
+        targetViewOrFeature: 'Directories View',
+        status: (items || []).length > 0 ? 'passed' : 'warning',
+        details: `${(items || []).length} structured catalog items verified across curated categories.`
       },
       {
         id: 'chk-7',

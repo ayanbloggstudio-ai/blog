@@ -38,7 +38,6 @@ import { AdminContentList } from './AdminContentList';
 import { AdminContentEditor } from './AdminContentEditor';
 import { AdminCategories } from './AdminCategories';
 import { AdminRankingsCollections } from './AdminRankingsCollections';
-import { AdminComparisons } from './AdminComparisons';
 import { AdminMediaLibrary } from './AdminMediaLibrary';
 import { AdminModeration } from './AdminModeration';
 import { AdminLinksAffiliates } from './AdminLinksAffiliates';
@@ -271,7 +270,6 @@ export const AdminLayout: React.FC = () => {
             { id: 'content', label: 'CMS Articles' },
             { id: 'editor', label: 'Editor' },
             { id: 'categories', label: 'Categories' },
-            { id: 'comparisons', label: 'Comparisons' },
             { id: 'media', label: 'Media' }
           ].map((tab) => (
             <button
@@ -309,7 +307,6 @@ export const AdminLayout: React.FC = () => {
         {adminActiveTab === 'editor' && <AdminContentEditor />}
         {adminActiveTab === 'categories' && <AdminCategories />}
         {adminActiveTab === 'rankings' && <AdminRankingsCollections />}
-        {adminActiveTab === 'comparisons' && <AdminComparisons />}
         {adminActiveTab === 'media' && <AdminMediaLibrary />}
         {adminActiveTab === 'links' && <AdminLinksAffiliates />}
         {adminActiveTab === 'moderation' && <AdminModeration />}

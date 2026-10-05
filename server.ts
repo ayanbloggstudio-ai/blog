@@ -49,6 +49,7 @@ async function startServer() {
   });
 
   // Mount unified real backend API router under /api, /api/v1, /api/auth, and /auth
+  app.use('/api/auth', apiRouter);
   app.use('/api', apiRouter);
   app.use('/api/v1', apiRouter);
   app.use('/auth', apiRouter);

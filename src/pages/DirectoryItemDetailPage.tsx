@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   ArrowLeft,
   ExternalLink,
-  Scale,
   Sparkles,
   Check,
   Info,
@@ -31,10 +30,6 @@ export const DirectoryItemDetailPage: React.FC = () => {
     directoryItems,
     navigateTo,
     openDirectoryItem,
-    openComparison,
-    compareItemIds,
-    addToCompare,
-    removeFromCompare,
     shareItem,
     showToast
   } = useDiscovery();
@@ -58,8 +53,6 @@ export const DirectoryItemDetailPage: React.FC = () => {
       </div>
     );
   }
-
-  const isCompared = compareItemIds.includes(item.id);
 
   const gallery = item.galleryImages && item.galleryImages.length > 0
     ? item.galleryImages
@@ -99,26 +92,8 @@ export const DirectoryItemDetailPage: React.FC = () => {
         {/* Top Actions */}
         <div className="flex items-center gap-2">
           <button
-            onClick={() => {
-              if (isCompared) {
-                removeFromCompare(item.id);
-              } else {
-                addToCompare(item.id);
-              }
-            }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all ${
-              isCompared
-                ? 'bg-cyan-950 text-cyan-300 border-cyan-700'
-                : 'bg-zinc-900 text-zinc-300 hover:text-white border-zinc-800'
-            }`}
-          >
-            <Scale className="w-3.5 h-3.5" />
-            <span>{isCompared ? 'In Compare List' : 'Add to Compare'}</span>
-          </button>
-
-          <button
             onClick={() => shareItem(item)}
-            className="p-2 rounded-xl bg-zinc-900 text-zinc-300 hover:text-white border border-zinc-800 transition-colors"
+            className="p-2 rounded-xl bg-zinc-900 text-zinc-300 hover:text-white border border-zinc-800 transition-colors cursor-pointer"
             title="Share"
           >
             <Share2 className="w-4 h-4" />
@@ -363,23 +338,12 @@ export const DirectoryItemDetailPage: React.FC = () => {
             <div>
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
                 <Layers className="w-4 h-4 text-emerald-400" />
-                Key Alternatives & Comparison Options
+                Key Alternatives & Market Context
               </h3>
               <p className="text-xs text-zinc-400">
-                Understand how {item.title} compares against other options on the market.
+                Understand how {item.title} fits against other notable options on the market.
               </p>
             </div>
-
-            <button
-              onClick={() => {
-                const targetIds = [item.id, ...(item.compareWithIds || [])];
-                openComparison(targetIds);
-              }}
-              className="px-3.5 py-1.5 rounded-xl bg-cyan-950 hover:bg-cyan-900 border border-cyan-800 text-cyan-300 text-xs font-semibold flex items-center gap-1.5 transition-colors"
-            >
-              <Scale className="w-3.5 h-3.5" />
-              <span>Compare Side-by-Side</span>
-            </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

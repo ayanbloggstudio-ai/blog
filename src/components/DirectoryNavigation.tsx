@@ -1,10 +1,10 @@
 import React from 'react';
-import { Sparkles, Scale, ListOrdered, Layers, Zap } from 'lucide-react';
+import { Sparkles, ListOrdered, Layers, Zap } from 'lucide-react';
 import { useDiscovery, DIRECTORY_SECTIONS } from '../context/DiscoveryContext';
 import { PageRoute } from '../types/discovery';
 
 export const DirectoryNavigation: React.FC = () => {
-  const { currentRoute, navigateTo, compareItemIds } = useDiscovery();
+  const { currentRoute, navigateTo } = useDiscovery();
 
   return (
     <div className="space-y-4">
@@ -43,24 +43,6 @@ export const DirectoryNavigation: React.FC = () => {
             </button>
           );
         })}
-
-        {/* Comparison Matrix Tab */}
-        <button
-          onClick={() => navigateTo('compare')}
-          className={`px-4 py-2 rounded-2xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-2 border ml-auto ${
-            currentRoute === 'compare'
-              ? 'bg-cyan-500 text-zinc-950 border-cyan-400 font-bold shadow-md'
-              : 'bg-zinc-900/80 text-zinc-300 hover:text-cyan-400 border-zinc-800 hover:border-cyan-800/60'
-          }`}
-        >
-          <Scale className="w-3.5 h-3.5" />
-          <span>Comparison Matrix</span>
-          {compareItemIds.length > 0 && (
-            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-400 text-zinc-950">
-              {compareItemIds.length}
-            </span>
-          )}
-        </button>
       </div>
     </div>
   );

@@ -6,7 +6,6 @@ import {
   Zap,
   Tag,
   Check,
-  Scale,
   DollarSign,
   ShieldCheck,
   Layers
@@ -23,13 +22,8 @@ interface DirectoryCardProps {
 export const DirectoryCard: React.FC<DirectoryCardProps> = ({ item, rankBadge }) => {
   const {
     openDirectoryItem,
-    compareItemIds,
-    addToCompare,
-    removeFromCompare,
     shareItem
   } = useDiscovery();
-
-  const isCompared = compareItemIds.includes(item.id);
 
   const getBestForBadgeStyle = (label: BestForLabel) => {
     switch (label) {
@@ -137,49 +131,25 @@ export const DirectoryCard: React.FC<DirectoryCardProps> = ({ item, rankBadge })
         </div>
 
         {/* Card Footer & Action Buttons */}
-        <div className="pt-3 border-t border-zinc-800/80 flex items-center justify-between gap-2">
-          {/* Compare Toggle */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              if (isCompared) {
-                removeFromCompare(item.id);
-              } else {
-                addToCompare(item.id);
-              }
-            }}
-            className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all ${
-              isCompared
-                ? 'bg-cyan-950 text-cyan-300 border-cyan-700'
-                : 'bg-zinc-900 text-zinc-400 hover:text-zinc-200 border-zinc-800'
-            }`}
-            title="Add to side-by-side comparison"
+        <div className="pt-3 border-t border-zinc-800/80 flex items-center justify-end gap-2">
+          <a
+            href={item.officialWebsite}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 text-xs transition-colors flex items-center gap-1"
+            title="Visit official website"
           >
-            <Scale className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">{isCompared ? 'Comparing' : 'Compare'}</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+
+          <button
+            onClick={() => openDirectoryItem(item.id)}
+            className="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-xs transition-all flex items-center gap-1 shadow-sm cursor-pointer"
+          >
+            <span>Explore</span>
+            <ArrowUpRight className="w-3.5 h-3.5" />
           </button>
-
-          {/* Outbound & Detail Actions */}
-          <div className="flex items-center gap-2">
-            <a
-              href={item.officialWebsite}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 text-xs transition-colors flex items-center gap-1"
-              title="Visit official website"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-
-            <button
-              onClick={() => openDirectoryItem(item.id)}
-              className="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-xs transition-all flex items-center gap-1 shadow-sm"
-            >
-              <span>Explore</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
         </div>
       </div>
     </div>

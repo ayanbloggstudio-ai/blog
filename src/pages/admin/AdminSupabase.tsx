@@ -595,8 +595,8 @@ export const AdminSupabase: React.FC = () => {
                 { name: 'cms_items', title: 'Content Items', count: items.length, icon: Layers, desc: 'Articles, tools, gadgets, visual reviews' },
                 { name: 'cms_categories', title: 'Categories', count: categories.length, icon: Globe, desc: 'Taxonomy, icons, and visibility switches' },
                 { name: 'cms_collections', title: 'Rankings & Stacks', count: collections.length, icon: Sparkles, desc: 'Top 10s and thematic collections' },
-                { name: 'cms_comparisons', title: 'Comparisons', count: comparisons.length, icon: Sliders, desc: 'Head-to-head decision matrix pairs' },
-                { name: 'cms_media_assets', title: 'Media Assets', count: mediaAssets.length, icon: Image, desc: 'CDN photography and cover gallery URLs' },
+                { name: 'prism-media', title: 'Supabase Storage', count: 'Active', icon: UploadCloud, desc: 'Public bucket for images, covers, and media files' },
+                { name: 'cms_media_assets', title: 'Media Assets', count: mediaAssets.length, icon: Layers, desc: 'CDN photography and cover gallery URLs' },
                 { name: 'cms_trends', title: 'Trend Radar', count: trends.length, icon: Zap, desc: 'Velocity scores and signal trackers' }
               ].map((c) => {
                 const Icon = c.icon as any;

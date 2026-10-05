@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { CommunityUser } from '../types/community';
 import { apiClient, getAuthToken, setAuthToken } from '../services/apiClient';
+import { getStoredSession } from '../services/supabaseAuthService';
 
 interface AuthContextType {
   user: CommunityUser | null;
@@ -51,7 +52,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Validate existing session on mount
   useEffect(() => {
     const initAuth = async () => {
-      const storedToken = getAuthToken();
+      const stored = getStoredSession();
+      if (stored.user) {
+        setUser(stored.user);
+        setTokenState(stored.token);
+      }
+
+      const storedToken = stored.token || getAuthToken();
       if (!storedToken) {
         setIsLoading(false);
         return;
@@ -62,16 +69,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (res.user) {
           setUser(res.user);
           setTokenState(storedToken);
-        } else {
+        }
+      } catch {
+        // If stored session is valid, keep it active
+        if (!stored.user) {
           setAuthToken(null);
           setTokenState(null);
           setUser(null);
         }
-      } catch (err) {
-        console.warn('Session verification failed:', err);
-        setAuthToken(null);
-        setTokenState(null);
-        setUser(null);
       } finally {
         setIsLoading(false);
       }

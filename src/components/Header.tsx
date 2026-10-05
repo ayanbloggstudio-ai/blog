@@ -10,7 +10,6 @@ import {
   X,
   Sliders,
   Layers,
-  Scale,
   Users,
   BookOpen,
   Sun,
@@ -31,7 +30,6 @@ export const Header: React.FC = () => {
     navigateTo,
     activeCategory,
     savedIds,
-    compareItemIds,
     setIsSearchOpen,
     setIsSavedOpen,
     setIsInterestsManagerOpen,
@@ -198,21 +196,6 @@ export const Header: React.FC = () => {
           >
             <Search className="w-3.5 h-3.5 text-zinc-400" />
           </button>
-
-          {/* Active Compare Indicator */}
-          {compareItemIds.length > 0 && (
-            <button
-              onClick={() => handleRouteNav('compare')}
-              className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-full bg-cyan-950/80 hover:bg-cyan-900 text-cyan-300 border border-cyan-700/60 transition-all text-xs font-semibold shadow-sm shrink-0"
-              title="View active comparison matrix"
-            >
-              <Scale className="w-3.5 h-3.5 shrink-0" />
-              <span className="hidden xl:inline">Compare</span>
-              <span className="w-4 h-4 rounded-full bg-cyan-400 text-zinc-950 font-black text-[10px] flex items-center justify-center shrink-0">
-                {compareItemIds.length}
-              </span>
-            </button>
-          )}
 
           {/* Interests Profile Trigger */}
           <button

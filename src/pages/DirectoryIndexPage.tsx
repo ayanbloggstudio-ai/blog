@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   Layers,
   Sparkles,
-  Scale,
   ExternalLink,
   Zap,
   Flame,
@@ -25,9 +24,7 @@ export const DirectoryIndexPage: React.FC<DirectoryIndexPageProps> = ({ initialC
   const {
     directoryItems,
     curatedLists,
-    openCuratedList,
-    openComparison,
-    compareItemIds
+    openCuratedList
   } = useDiscovery();
 
   const [selectedCat, setSelectedCat] = useState<DirectoryCategory | 'all'>(initialCategory || 'all');
@@ -68,11 +65,11 @@ export const DirectoryIndexPage: React.FC<DirectoryIndexPageProps> = ({ initialC
           </h1>
           
           <p className="text-xs sm:text-sm text-zinc-400 mt-1 max-w-xl">
-            Clean, structured indices with contextual fit badges, quick specifications, direct official links, and side-by-side comparison.
+            Clean, structured indices with contextual fit badges, quick specifications, and direct official links.
           </p>
         </div>
 
-        {/* Directory Search & Compare Counter */}
+        {/* Directory Search */}
         <div className="flex items-center gap-3">
           <div className="relative w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
@@ -84,16 +81,6 @@ export const DirectoryIndexPage: React.FC<DirectoryIndexPageProps> = ({ initialC
               className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-zinc-900/90 border border-zinc-800 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-emerald-500 transition-colors"
             />
           </div>
-
-          {compareItemIds.length > 0 && (
-            <button
-              onClick={() => openComparison(compareItemIds)}
-              className="px-3.5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-bold text-xs flex items-center gap-1.5 whitespace-nowrap transition-all shadow-md"
-            >
-              <Scale className="w-3.5 h-3.5" />
-              <span>Compare ({compareItemIds.length})</span>
-            </button>
-          )}
         </div>
       </div>
 

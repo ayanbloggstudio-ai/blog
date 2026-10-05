@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { UploadCloud, Link as LinkIcon, X, Check, Image as ImageIcon, Sparkles, AlertCircle } from 'lucide-react';
+import { UploadCloud, Link as LinkIcon, X, Check, Image as ImageIcon, Sparkles, AlertCircle, Database } from 'lucide-react';
+import { uploadImageToSupabase, isSupabaseStorageConfigured } from '../services/supabaseStorageService';
 
 export interface ImageUploadFieldProps {
   value: string;
@@ -111,6 +112,22 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
 
     setIsProcessing(true);
     try {
+      // 1. Try Supabase Storage first if configured
+      if (isSupabaseStorageConfigured()) {
+        try {
+          const uploadRes = await uploadImageToSupabase(file, 'media');
+          if (uploadRes.url) {
+            onChange(uploadRes.url);
+            setMode('upload');
+            setIsProcessing(false);
+            return;
+          }
+        } catch (sbErr) {
+          console.warn('Supabase storage upload failed, falling back to local optimization:', sbErr);
+        }
+      }
+
+      // 2. Client-side optimized fallback
       const optimizedDataUrl = await optimizeImageFile(file);
       onChange(optimizedDataUrl);
       setMode('upload');
@@ -261,7 +278,8 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
               </div>
               <div className="flex items-center justify-center gap-2 text-[11px] text-zinc-400">
                 <span className="text-emerald-400 font-semibold flex items-center gap-1">
-                  <Check className="w-3 h-3" /> Image uploaded
+                  <Check className="w-3 h-3" />
+                  {value.includes('supabase.co') ? 'Uploaded to Supabase Storage' : 'Image ready'}
                 </span>
                 <span>•</span>
                 <span className="hover:text-white underline font-medium">Click or drop to replace</span>
@@ -274,7 +292,7 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
               </div>
               <div className="space-y-0.5">
                 <p className="text-xs font-bold text-zinc-200">
-                  Click to upload image or drag & drop here
+                  {isSupabaseStorageConfigured() ? 'Upload to Supabase Storage or Drag & Drop' : 'Click to upload image or drag & drop here'}
                 </p>
                 <p className="text-[10px] text-zinc-500">
                   PNG, JPG, WebP, GIF, SVG up to 20MB

@@ -362,6 +362,20 @@ alter publication supabase_realtime add table
   public.community_comments,
   public.novels,
   public.novel_chapters;
+
+-- 19. Supabase Storage Bucket for Media & Imagery
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('prism-media', 'prism-media', true, 20971520, array['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/svg+xml'])
+on conflict (id) do update set public = true;
+
+create policy "Public Access to prism-media" on storage.objects
+  for select using (bucket_id = 'prism-media');
+
+create policy "Public Uploads to prism-media" on storage.objects
+  for insert with check (bucket_id = 'prism-media');
+
+create policy "Public Updates to prism-media" on storage.objects
+  for update using (bucket_id = 'prism-media');
 `;
 
 // Adapters: CMS Item to DB row
